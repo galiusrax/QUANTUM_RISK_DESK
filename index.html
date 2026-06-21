@@ -137,6 +137,7 @@
         .layer-btn.active-safe    { border-color:var(--success); color:var(--success); background:rgba(57,255,20,0.06);  text-shadow:0 0 5px var(--success); }
         .layer-btn.active-info    { border-color:var(--info);    color:var(--info);    background:rgba(77,216,255,0.07); text-shadow:0 0 5px var(--info); }
         .layer-btn.active-mil     { border-color:#ff7a3d;        color:#ff7a3d;        background:rgba(255,122,61,0.08); text-shadow:0 0 5px #ff7a3d; }
+        .layer-btn.active-quake   { border-color:#d97cff;        color:#d97cff;        background:rgba(217,124,255,0.08); text-shadow:0 0 5px #d97cff; }
 
         /* MAP WRAPPER */
         .map-wrapper {
@@ -159,6 +160,7 @@
         .pipboy-marker-event { color:var(--warning);     font-size:13px; text-align:center; line-height:14px; text-shadow:0 0 6px var(--warning); animation: pulseRed 2.2s infinite; }
         .pipboy-marker-mil   { color:#ff7a3d;             font-size:14px; text-align:center; line-height:15px; text-shadow:0 0 6px #ff7a3d; }
         .pipboy-marker-nuke  { color:#ffe14d;             font-size:14px; text-align:center; line-height:15px; text-shadow:0 0 7px #ffe14d; }
+        .pipboy-marker-quake { color:#d97cff;             text-align:center; text-shadow:0 0 7px #d97cff; animation: pulseRed 2.6s infinite; }
 
         @keyframes pulseRed  { 0%,100%{opacity:1;} 50%{opacity:0.45;} }
         @keyframes pulseSafe { 0%,100%{opacity:1;} 50%{opacity:0.55;} }
@@ -250,6 +252,20 @@
         .data-meta-footer span strong { color: var(--text-light); }
 
         /* STOCK MARKET CARD */
+        .market-tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+        .market-tab {
+            font-family: monospace; font-size: 0.72rem;
+            padding: 4px 12px;
+            border-radius: 2px; cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--bg-main); color: var(--text-dark);
+            letter-spacing: 0.5px; text-transform: uppercase;
+            transition: all 0.15s;
+        }
+        .market-tab.active {
+            border-color: var(--text-light); color: var(--text-light);
+            background: rgba(93,255,163,0.08); text-shadow: 0 0 5px var(--text-light);
+        }
         .ticker-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 12px;
@@ -299,6 +315,7 @@
                 <button class="layer-btn active-warning" id="btn-events"    onclick="toggleLayer('events')">&#9889; News Events</button>
                 <button class="layer-btn active-info"    id="btn-planes"    onclick="toggleLayer('planes')">&#9992; Live Air Traffic</button>
                 <button class="layer-btn active-mil"     id="btn-milnuke"   onclick="toggleLayer('milnuke')">&#9760; Military &amp; Nuclear Sites</button>
+                <button class="layer-btn active-quake"   id="btn-quakes"    onclick="toggleLayer('quakes')">&#9889; Natural Disasters (Live Quakes)</button>
             </div>
 
             <div class="map-wrapper">
@@ -310,7 +327,8 @@
                     <div class="legend-row"><span class="legend-dot" style="color:var(--warning)">&#9889;</span> News-Derived Event</div>
                     <div class="legend-row"><span class="legend-dot" style="color:var(--info)">&#9992;</span> Live Aircraft</div>
                     <div class="legend-row"><span class="legend-dot" style="color:#ff7a3d">&#9760;</span> Military Base</div>
-                    <div class="legend-row"><span class="legend-dot" style="color:#ffe14d">&#9889;</span> Civil Nuclear Plant</div>
+                    <div class="legend-row"><span class="legend-dot" style="color:#ffe14d">&#9762;</span> Civil Nuclear Plant</div>
+                    <div class="legend-row"><span class="legend-dot" style="color:#d97cff">&#9711;</span> Earthquake (live, USGS)</div>
                     <div class="legend-row"><span class="legend-dot" style="color:var(--danger)">&#9679;</span> Conflict Intensity (heatmap)</div>
                     <div class="legend-row"><span class="legend-dot" style="color:var(--warning)">&#9737;</span> Your Position</div>
                 </div>
@@ -409,6 +427,11 @@
             <span>Global Market Watch</span>
             <span id="marketFeedStatus" class="feed-status status-offline">&#9679; OFFLINE</span>
         </h2>
+        <div class="market-tabs" id="marketTabs">
+            <button class="market-tab active" id="tab-indices"     onclick="setMarketCategory('indices')">Indices</button>
+            <button class="market-tab"        id="tab-forex"       onclick="setMarketCategory('forex')">Forex</button>
+            <button class="market-tab"        id="tab-commodities" onclick="setMarketCategory('commodities')">Commodities</button>
+        </div>
         <div class="ticker-grid" id="marketGrid"></div>
         <p class="market-disclaimer">
             &#9888; Quotes sourced from Stooq end-of-day/delayed feeds (free, no API key). Not real-time exchange data — informational only, not for trading decisions.
@@ -653,7 +676,7 @@ function runRiskCalculations() {
 // ============================================================
 // MAP — LAYER GROUPS + TOGGLE
 // ============================================================
-const layerState = { conflict: true, targets: true, safezones: true, events: true, planes: true, milnuke: true };
+const layerState = { conflict: true, targets: true, safezones: true, events: true, planes: true, milnuke: true, quakes: true };
 const layerGroups = {};
 
 function toggleLayer(name) {
@@ -716,7 +739,7 @@ function initGlobalMap() {
     // — Military & civil nuclear sites layer (toggleable)
     const milGroup = L.layerGroup();
     const milIcon  = L.divIcon({ className: 'pipboy-marker-mil',  html: '&#9760;', iconSize: [16,16] });
-    const nukeIcon = L.divIcon({ className: 'pipboy-marker-nuke', html: '&#9889;', iconSize: [16,16] });
+    const nukeIcon = L.divIcon({ className: 'pipboy-marker-nuke', html: '&#9762;', iconSize: [16,16] });
     militaryNuclearSites.forEach(s => {
         const icon = s.type === 'nuke' ? nukeIcon : milIcon;
         const color = s.type === 'nuke' ? '#ffe14d' : '#ff7a3d';
@@ -724,7 +747,7 @@ function initGlobalMap() {
         L.marker([s.lat, s.lng], { icon }).addTo(milGroup)
             .bindPopup(`
                 <div class="info-popup">
-                    <span class="ip-title" style="color:${color}">${s.type === 'nuke' ? '&#9889;' : '&#9760;'} ${s.name}</span>
+                    <span class="ip-title" style="color:${color}">${s.type === 'nuke' ? '&#9762;' : '&#9760;'} ${s.name}</span>
                     <span class="ip-meta">${tag}</span>
                     <span class="ip-body">${s.note}</span>
                 </div>
@@ -732,6 +755,12 @@ function initGlobalMap() {
     });
     milGroup.addTo(map);
     layerGroups.milnuke = milGroup;
+
+    // — Natural disasters layer (live earthquakes via USGS, populated dynamically — see refreshEarthquakes below)
+    const quakeGroup = L.layerGroup();
+    quakeGroup.addTo(map);
+    layerGroups.quakes = quakeGroup;
+    window.pipboyQuakeGroup = quakeGroup;
 
     // — Conflict intensity heatmap (permanent overlay, not part of layerGroups
     //   toggles — always visible alongside whatever other layers are on, same
@@ -926,14 +955,34 @@ async function refreshAircraft() {
 // This is delayed/end-of-day style data, not a live exchange feed
 // — fine for a situational-awareness dashboard, explicitly labeled
 // as such in the UI disclaimer rather than implied as real-time.
+//
+// Symbols are grouped into selectable categories (tabs in the UI).
+// Stooq's symbol scheme: ^xxx for indices, currency pairs as
+// e.g. usdclp / eurusd, and commodities/futures with their own
+// short codes (gc.f = gold, cl.f = crude oil).
 // ============================================================
-const MARKET_TICKERS = [
-    { symbol: '^spx',  name: 'S&P 500',    sub: 'US Large Cap' },
-    { symbol: '^dji',  name: 'Dow Jones',  sub: 'US Industrial' },
-    { symbol: '^ndq',  name: 'Nasdaq',     sub: 'US Tech-heavy' },
-    { symbol: '^ipsa', name: 'IPSA',       sub: 'Chile — Bolsa de Santiago' },
-];
+const MARKET_CATEGORIES = {
+    indices: [
+        { symbol: '^spx',  name: 'S&P 500',    sub: 'US Large Cap' },
+        { symbol: '^dji',  name: 'Dow Jones',  sub: 'US Industrial' },
+        { symbol: '^ndq',  name: 'Nasdaq',     sub: 'US Tech-heavy' },
+        { symbol: '^ipsa', name: 'IPSA',       sub: 'Chile — Bolsa de Santiago' },
+    ],
+    forex: [
+        { symbol: 'usdclp', name: 'USD/CLP', sub: 'Dollar — Chilean Peso' },
+        { symbol: 'eurusd', name: 'EUR/USD', sub: 'Euro — US Dollar' },
+        { symbol: 'usdjpy', name: 'USD/JPY', sub: 'Dollar — Japanese Yen' },
+        { symbol: 'usdrub', name: 'USD/RUB', sub: 'Dollar — Russian Ruble' },
+    ],
+    commodities: [
+        { symbol: 'gc.f',  name: 'Gold',       sub: 'COMEX Futures, $/oz' },
+        { symbol: 'cl.f',  name: 'Crude Oil',  sub: 'WTI Futures, $/bbl' },
+        { symbol: 'si.f',  name: 'Silver',     sub: 'COMEX Futures, $/oz' },
+        { symbol: 'ng.f',  name: 'Natural Gas',sub: 'NYMEX Futures, $/MMBtu' },
+    ],
+};
 const STOOQ_URL = 'https://stooq.com/q/l/?s=SYMBOLS&f=sd2t2ohlcv&h&e=csv';
+let currentMarketCategory = 'indices';
 
 function parseStooqCsv(csvText) {
     const lines = csvText.trim().split('\n');
@@ -953,17 +1002,27 @@ function parseStooqCsv(csvText) {
     });
 }
 
+function setMarketCategory(category) {
+    if (!MARKET_CATEGORIES[category]) return;
+    currentMarketCategory = category;
+    document.querySelectorAll('.market-tab').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.getElementById('tab-' + category);
+    if (activeBtn) activeBtn.classList.add('active');
+    refreshMarkets();
+}
+
 async function refreshMarkets() {
     const grid = document.getElementById('marketGrid');
     if (!grid) return;
+    const tickers = MARKET_CATEGORIES[currentMarketCategory] || MARKET_CATEGORIES.indices;
     try {
-        const url = STOOQ_URL.replace('SYMBOLS', MARKET_TICKERS.map(t => t.symbol).join('+'));
+        const url = STOOQ_URL.replace('SYMBOLS', tickers.map(t => t.symbol).join('+'));
         const r = await fetch(url);
         if (!r.ok) throw new Error('stooq http ' + r.status);
         const csv = await r.text();
         const rows = parseStooqCsv(csv);
 
-        grid.innerHTML = MARKET_TICKERS.map(t => {
+        grid.innerHTML = tickers.map(t => {
             const row = rows.find(x => x.symbol === t.symbol);
             if (!row || row.close == null) {
                 return `
@@ -992,7 +1051,7 @@ async function refreshMarkets() {
         console.warn('Market data fetch failed', e);
         setFeedStatus('marketFeedStatus', false);
         if (!grid.innerHTML) {
-            grid.innerHTML = MARKET_TICKERS.map(t => `
+            grid.innerHTML = tickers.map(t => `
                 <div class="ticker-item">
                     <span class="ticker-name">${t.name}</span>
                     <span class="ticker-sub">${t.sub}</span>
@@ -1003,8 +1062,78 @@ async function refreshMarkets() {
 }
 
 // ============================================================
-// ALARM TICKER (fallback pool, used only if all live feeds fail)
+// NATURAL DISASTERS — live earthquakes via USGS (no API key)
+// ------------------------------------------------------------
+// USGS publishes free, public GeoJSON feeds updated every 5
+// minutes, no key or auth required, CORS-friendly. We use the
+// "past day, magnitude 2.5+" feed as a reasonable balance between
+// global coverage and not flooding the map with thousands of
+// micro-quakes. Marker size/opacity scale with magnitude.
+//
+// Wildfires / hurricanes / floods: there's no equally simple
+// free+keyless GeoJSON equivalent for these (NASA FIRMS requires
+// a free API key for fire data; NOAA hurricane feeds are seasonal
+// and format-heavy). Left undone rather than faked — same
+// principle as the maritime-traffic stub above. To add later:
+//   - Wildfires: NASA FIRMS (https://firms.modaps.eosdis.nasa.gov/api/)
+//     — free key, simple CSV/GeoJSON, drop into a 'fires' layerGroup
+//     using the same marker pattern as refreshEarthquakes below.
+//   - Hurricanes/cyclones: NOAA NHC GIS feeds (no key, but
+//     seasonal/Atlantic+EPac only) — https://www.nhc.noaa.gov/gis/
 // ============================================================
+const USGS_QUAKE_URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
+let quakeMarkers = [];
+
+function quakeColor(mag) {
+    if (mag >= 6) return '#ff3b3b';
+    if (mag >= 5) return '#ff7a3d';
+    return '#d97cff';
+}
+
+async function refreshEarthquakes() {
+    if (!window.pipboyQuakeGroup) return;
+    try {
+        let r = await fetch(USGS_QUAKE_URL);
+        if (!r.ok) throw new Error('usgs http ' + r.status);
+        const data = await r.json();
+        const features = Array.isArray(data.features) ? data.features : [];
+
+        quakeMarkers.forEach(m => window.pipboyQuakeGroup.removeLayer(m));
+        quakeMarkers = [];
+
+        features.forEach(f => {
+            const [lon, lat] = f.geometry?.coordinates || [];
+            if (lon == null || lat == null) return;
+            const mag = f.properties?.mag;
+            const place = f.properties?.place || 'Unknown location';
+            const time = f.properties?.time ? new Date(f.properties.time).toLocaleString() : 'n/a';
+            const url = f.properties?.url;
+            const color = quakeColor(mag || 0);
+            const radiusPx = 5 + (mag || 2) * 2.2;
+            const icon = L.divIcon({
+                className: 'pipboy-marker-quake',
+                html: `<span style="display:inline-block;width:${radiusPx}px;height:${radiusPx}px;border-radius:50%;border:2px solid ${color};box-shadow:0 0 6px ${color};"></span>`,
+                iconSize: [radiusPx, radiusPx]
+            });
+            const marker = L.marker([lat, lon], { icon });
+            const linkHtml = url ? `<br><a class="news-link" href="${url}" target="_blank" rel="noopener noreferrer">USGS report &#8599;</a>` : '';
+            marker.bindPopup(`
+                <div class="info-popup">
+                    <span class="ip-title" style="color:${color}">&#9711; M${mag != null ? mag.toFixed(1) : '?'} — ${place}</span>
+                    <span class="ip-meta">USGS &middot; ${time}</span>
+                    <span class="ip-body">${linkHtml || 'Live earthquake feed, past 24h, magnitude 2.5+'}</span>
+                </div>
+            `);
+            marker.addTo(window.pipboyQuakeGroup);
+            quakeMarkers.push(marker);
+        });
+    } catch (e) {
+        console.warn('USGS earthquake fetch failed, skipping this cycle', e);
+        // leave previous frame's markers in place rather than clearing to blank
+    }
+}
+
+
 const breakingAlarms = [
     { source:"OSINT-EUR",       text:"Air space safety alerts initialized across eastern corridors. Sub-radar interference noted.",               type:"flash-red"    },
     { source:"PACIFIC-MONITOR", text:"Task force formations track tactical transits inside contested maritime sectors.",                          type:"flash-orange" },
@@ -1209,6 +1338,7 @@ refreshGlobal().then(() => injectAlarm('newsTicker', () => liveCache.length ? li
 refreshLocal().then(()  => injectAlarm('localTicker', () => localCache.length ? localCache : localMockAlarms));
 refreshAircraft();
 refreshMarkets();
+refreshEarthquakes();
 
 setInterval(() => injectAlarm('newsTicker', () => liveCache.length ? liveCache : breakingAlarms), 6000);
 setInterval(() => injectAlarm('localTicker', () => localCache.length ? localCache : localMockAlarms), 7000);
@@ -1217,6 +1347,7 @@ setInterval(refreshGlobal, POLL_MS);
 setInterval(refreshLocal,  POLL_MS);
 setInterval(refreshAircraft, 15000); // OpenSky anonymous tier: keep well under its rate limit
 setInterval(refreshMarkets, 60000); // markets move slower than news/aircraft; 1min cadence is plenty
+setInterval(refreshEarthquakes, 90000); // USGS feed itself updates every ~5min; polling more often than that is pointless
 </script>
 </body>
 </html>
