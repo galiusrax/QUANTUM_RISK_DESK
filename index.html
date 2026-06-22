@@ -479,6 +479,38 @@
 // ============================================================
 const FIXED_VECTORS = { nuke: 72, geo: 68, climate: 65 };
 
+// ============================================================
+// SHARED CORS PROXY HELPERS
+// ------------------------------------------------------------
+// Several upstream feeds in this file (OpenSky, Yahoo Finance)
+// don't reliably send Access-Control-Allow-Origin headers for
+// arbitrary browser origins, so direct fetch() calls get blocked
+// by the browser even though the API itself works fine (e.g. via
+// curl, or server-side). Routing through a public CORS proxy adds
+// the missing header. Two independent proxies are tried in order
+// so one being rate-limited/down doesn't take out every live feed
+// in the app at once.
+// ============================================================
+const CORS_PROXIES = [
+    url => 'https://corsproxy.io/?url=' + encodeURIComponent(url),
+    url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+];
+
+async function fetchViaProxies(targetUrl) {
+    let lastErr = null;
+    for (const buildProxyUrl of CORS_PROXIES) {
+        try {
+            const r = await fetch(buildProxyUrl(targetUrl));
+            if (!r.ok) { lastErr = new Error('HTTP_' + r.status); continue; }
+            return await r.json();
+        } catch (e) {
+            lastErr = e;
+        }
+    }
+    throw lastErr || new Error('ALL_PROXIES_FAILED');
+}
+
+
 const DEFCON_THRESHOLDS = [
     { level:1, minScore:95, label:'COCKED PISTOL', color:'var(--danger)',  legendClass:'active-danger'  },
     { level:2, minScore:68, label:'FAST PACE',     color:'var(--danger)',  legendClass:'active-danger'  },
@@ -975,12 +1007,12 @@ function scheduleNextAircraftRefresh() {
 async function refreshAircraft() {
     if (!window.pipboyPlaneGroup) return;
     try {
-        const r = await fetch(buildOpenSkyUrl());
-        if (r.status === 429) throw new Error('RATE_LIMITED');
-        if (r.status === 401 || r.status === 403) throw new Error('AUTH_REQUIRED');
-        if (!r.ok) throw new Error('HTTP_' + r.status);
-        const data = await r.json();
-        const states = Array.isArray(data.states) ? data.states : [];
+        // OpenSky doesn't reliably send Access-Control-Allow-Origin for
+        // browser-origin requests (confirmed open issue on their own repo),
+        // so this goes through the shared CORS proxy chain rather than a
+        // direct fetch — the direct call was failing silently every time.
+        const data = await fetchViaProxies(buildOpenSkyUrl());
+        const states = Array.isArray(data?.states) ? data.states : [];
         aircraftFailStreak = 0;
 
         // clear previous frame
@@ -1028,10 +1060,10 @@ async function refreshAircraft() {
         setAircraftStatus(String(sampled.length));
     } catch (e) {
         aircraftFailStreak++;
-        const reason = e.message === 'RATE_LIMITED' ? 'rate-limited (daily anonymous quota likely exhausted)'
-                     : e.message === 'AUTH_REQUIRED' ? 'OpenSky now requires auth for this request'
+        const reason = e.message === 'HTTP_429' ? 'rate-limited (daily anonymous quota likely exhausted)'
+                     : (e.message === 'HTTP_401' || e.message === 'HTTP_403') ? 'OpenSky rejected this request (auth/quota)'
                      : e.message?.startsWith('HTTP_') ? 'feed error (' + e.message.replace('HTTP_','') + ')'
-                     : 'feed unreachable';
+                     : 'feed unreachable (proxy and upstream both failed)';
         setAircraftStatus('0 — ' + reason);
         console.warn('OpenSky fetch failed:', e.message, '— fail streak:', aircraftFailStreak);
         // leave previous frame's markers in place rather than clearing to blank
@@ -1077,11 +1109,13 @@ const MARKET_CATEGORIES = {
         { symbol: 'NG=F',  name: 'Natural Gas', sub: 'NYMEX Futures, $/MMBtu' },
     ],
 };
-const YF_QUOTE_URL = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=';
-const CORS_PROXIES = [
-    url => 'https://corsproxy.io/?url=' + encodeURIComponent(url),
-    url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
-];
+// v7/finance/quote now returns 401 — Yahoo deliberately disabled API-level
+// access to that endpoint ("licenses don't authorize redistribution").
+// v8/finance/chart/{symbol} is a different endpoint that still works without
+// auth (confirmed stable as of 2026) — it's what powers Yahoo's own charts.
+// It takes ONE symbol per call, so we fire one request per ticker in
+// parallel rather than a single batched call.
+const YF_CHART_URL = symbol => `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=1d`;
 let currentMarketCategory = 'indices';
 
 function setMarketCategory(category) {
@@ -1104,18 +1138,15 @@ function renderMarketError(tickers, label) {
         </div>`).join('');
 }
 
-async function fetchViaProxies(targetUrl) {
-    let lastErr = null;
-    for (const buildProxyUrl of CORS_PROXIES) {
-        try {
-            const r = await fetch(buildProxyUrl(targetUrl));
-            if (!r.ok) { lastErr = new Error('HTTP_' + r.status); continue; }
-            return await r.json();
-        } catch (e) {
-            lastErr = e;
-        }
-    }
-    throw lastErr || new Error('ALL_PROXIES_FAILED');
+async function fetchOneQuote(symbol) {
+    const data = await fetchViaProxies(YF_CHART_URL(symbol));
+    const result = data?.chart?.result?.[0];
+    if (!result) return null;
+    const price = result.meta?.regularMarketPrice;
+    const prevClose = result.meta?.chartPreviousClose ?? result.meta?.previousClose;
+    if (price == null) return null;
+    const changePercent = (prevClose != null && prevClose !== 0) ? ((price - prevClose) / prevClose) * 100 : null;
+    return { price, changePercent };
 }
 
 async function refreshMarkets() {
@@ -1123,15 +1154,14 @@ async function refreshMarkets() {
     if (!grid) return;
     const tickers = MARKET_CATEGORIES[currentMarketCategory] || MARKET_CATEGORIES.indices;
     try {
-        const symbols = tickers.map(t => encodeURIComponent(t.symbol)).join(',');
-        const targetUrl = YF_QUOTE_URL + symbols;
-        const data = await fetchViaProxies(targetUrl);
-        const results = data?.quoteResponse?.result;
-        if (!Array.isArray(results)) throw new Error('BAD_PAYLOAD');
+        const settled = await Promise.allSettled(tickers.map(t => fetchOneQuote(t.symbol)));
+        const anySucceeded = settled.some(s => s.status === 'fulfilled' && s.value != null);
+        if (!anySucceeded) throw new Error('ALL_SYMBOLS_FAILED');
 
-        grid.innerHTML = tickers.map(t => {
-            const row = results.find(x => x.symbol === t.symbol);
-            if (!row || row.regularMarketPrice == null) {
+        grid.innerHTML = tickers.map((t, i) => {
+            const outcome = settled[i];
+            const quote = outcome.status === 'fulfilled' ? outcome.value : null;
+            if (!quote) {
                 return `
                     <div class="ticker-item">
                         <span class="ticker-name">${t.name}</span>
@@ -1139,9 +1169,8 @@ async function refreshMarkets() {
                         <span class="ticker-stale">No data returned for this symbol</span>
                     </div>`;
             }
-            const price = row.regularMarketPrice;
-            const change = row.regularMarketChangePercent;
-            const dir = change == null ? '' : (change >= 0 ? 'up' : 'down');
+            const { price, changePercent } = quote;
+            const dir = changePercent == null ? '' : (changePercent >= 0 ? 'up' : 'down');
             const arrow = dir === 'up' ? '&#9650;' : (dir === 'down' ? '&#9660;' : '');
             return `
                 <div class="ticker-item ${dir}">
@@ -1149,7 +1178,7 @@ async function refreshMarkets() {
                     <span class="ticker-sub">${t.sub}</span>
                     <div class="ticker-price-row">
                         <span class="ticker-price">${price.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                        <span class="ticker-change ${dir}">${change != null ? arrow + ' ' + Math.abs(change).toFixed(2) + '%' : 'n/a'}</span>
+                        <span class="ticker-change ${dir}">${changePercent != null ? arrow + ' ' + Math.abs(changePercent).toFixed(2) + '%' : 'n/a'}</span>
                     </div>
                 </div>`;
         }).join('');
