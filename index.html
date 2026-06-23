@@ -174,7 +174,6 @@
         .pipboy-marker-hot   { color:var(--danger);      font-size:15px; text-align:center; line-height:16px; text-shadow:0 0 8px var(--danger); animation: pulseRed 1.8s infinite; }
         .pipboy-marker-safe  { color:var(--success);     font-size:14px; text-align:center; line-height:16px; text-shadow:0 0 8px var(--success); animation: pulseSafe 2.5s infinite; }
         .pipboy-marker-user  { color:var(--warning);     font-size:16px; text-shadow:0 0 8px var(--warning); animation:pulseUser 1.6s infinite; }
-        .pipboy-marker-plane { color:var(--info);        font-size:13px; text-align:center; line-height:14px; text-shadow:0 0 6px var(--info); transition: transform 0.4s linear; }
         .pipboy-marker-event { color:var(--warning);     font-size:13px; text-align:center; line-height:14px; text-shadow:0 0 6px var(--warning); animation: pulseRed 2.2s infinite; }
         .pipboy-marker-mil   { color:#ff7a3d;             font-size:14px; text-align:center; line-height:15px; text-shadow:0 0 6px #ff7a3d; }
         .pipboy-marker-nuke  { color:#ffe14d;             font-size:14px; text-align:center; line-height:15px; text-shadow:0 0 7px #ffe14d; }
@@ -191,7 +190,7 @@
         .safe-popup .sp-reason { color:var(--text-light); }
         .safe-popup .sp-caveat { color:var(--text-dark); font-size:0.7rem; display:block; margin-top:5px; font-style:italic; }
 
-        /* GENERIC INFO POPUP (planes / events) */
+        /* GENERIC INFO POPUP (events / sites) */
         .info-popup { font-size:0.78rem; line-height:1.5; }
         .info-popup .ip-title { font-weight:700; font-size:0.85rem; display:block; margin-bottom:4px; }
         .info-popup .ip-meta  { color:var(--text-dark); font-size:0.7rem; display:block; margin-bottom:4px; }
@@ -331,7 +330,6 @@
                 <button class="layer-btn active-danger"  id="btn-targets"   onclick="toggleLayer('targets')">&#9888; Primary Targets</button>
                 <button class="layer-btn active-safe"    id="btn-safezones" onclick="toggleLayer('safezones')">&#10003; Safe Zones</button>
                 <button class="layer-btn active-warning" id="btn-events"    onclick="toggleLayer('events')">&#9889; News Events</button>
-                <button class="layer-btn active-info"    id="btn-planes"    onclick="toggleLayer('planes')">&#9992; Live Air Traffic</button>
                 <button class="layer-btn active-mil"     id="btn-milnuke"   onclick="toggleLayer('milnuke')">&#9760; Military &amp; Nuclear Sites</button>
                 <button class="layer-btn active-quake"   id="btn-quakes"    onclick="toggleLayer('quakes')">&#9889; Natural Disasters (Live Quakes)</button>
             </div>
@@ -348,7 +346,6 @@
                         <div class="legend-row"><span class="legend-dot" style="color:var(--danger)">&#9888;</span> Primary Nuclear Target</div>
                         <div class="legend-row"><span class="legend-dot" style="color:var(--success)">&#10022;</span> Probable Safe Zone</div>
                         <div class="legend-row"><span class="legend-dot" style="color:var(--warning)">&#9889;</span> News-Derived Event</div>
-                        <div class="legend-row"><span class="legend-dot" style="color:var(--info)">&#9992;</span> Live Aircraft</div>
                         <div class="legend-row"><span class="legend-dot" style="color:#ff7a3d">&#9760;</span> Military Base</div>
                         <div class="legend-row"><span class="legend-dot" style="color:#ffe14d">&#9762;</span> Civil Nuclear Plant</div>
                         <div class="legend-row"><span class="legend-dot" style="color:#d97cff">&#9711;</span> Earthquake (live, USGS)</div>
@@ -467,7 +464,6 @@
         <span>GEODATA VECTORS REV: <strong id="geoRevLabel">--</strong></span>
         <span>NEXT SCHEDULED REVIEW: <strong id="geoNextLabel">--</strong></span>
         <span>NEWS SOURCES ACTIVE: <strong id="sourceCountLabel">0</strong> / <span id="sourceTotalLabel">0</span></span>
-        <span>AIRCRAFT TRACKED: <strong id="aircraftCountLabel">0</strong></span>
     </div>
 
 </div><!-- /container -->
@@ -482,32 +478,51 @@ const FIXED_VECTORS = { nuke: 72, geo: 68, climate: 65 };
 // ============================================================
 // SHARED CORS PROXY HELPERS
 // ------------------------------------------------------------
-// Several upstream feeds in this file (OpenSky, Yahoo Finance)
+// Some upstream feeds in this file (e.g. Yahoo Finance) don't reliably
 // don't reliably send Access-Control-Allow-Origin headers for
 // arbitrary browser origins, so direct fetch() calls get blocked
 // by the browser even though the API itself works fine (e.g. via
 // curl, or server-side). Routing through a public CORS proxy adds
-// the missing header. Two independent proxies are tried in order
-// so one being rate-limited/down doesn't take out every live feed
-// in the app at once.
+// the missing header.
+//
+// IMPORTANT — free public CORS proxies change their access policy
+// without notice (origin allowlists, paid tiers, rate limits), and
+// that's already broken this feature more than once. corsproxy.io
+// now restricts its free tier to a fixed allowlist of dev origins
+// (localhost, CodePen, Replit, etc.) and rejects everything else —
+// it's been removed from this list for that reason. The three below
+// (different operators, independent infrastructure, no origin
+// allowlist as of mid-2026) are used instead, tried in order so one
+// going down/gating doesn't take out the feature. There is still no
+// guarantee any of them stays this way — that's a structural
+// limitation of doing this without a backend you control. If ALL
+// three start failing again, the durable fix is running a tiny
+// proxy of your own (a 10-line Cloudflare Worker or Vercel function
+// that fetches the target URL and adds Access-Control-Allow-Origin:
+// * is enough) and adding it to the front of this list.
 // ============================================================
 const CORS_PROXIES = [
-    url => 'https://corsproxy.io/?url=' + encodeURIComponent(url),
     url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+    url => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
+    url => 'https://proxy.corsfix.com/?' + url,
 ];
 
 async function fetchViaProxies(targetUrl) {
-    let lastErr = null;
+    const attempts = [];
     for (const buildProxyUrl of CORS_PROXIES) {
+        const proxyUrl = buildProxyUrl(targetUrl);
+        const proxyHost = (() => { try { return new URL(proxyUrl).hostname; } catch { return proxyUrl; } })();
         try {
-            const r = await fetch(buildProxyUrl(targetUrl));
-            if (!r.ok) { lastErr = new Error('HTTP_' + r.status); continue; }
+            const r = await fetch(proxyUrl);
+            if (!r.ok) { attempts.push(`${proxyHost}: HTTP_${r.status}`); continue; }
             return await r.json();
         } catch (e) {
-            lastErr = e;
+            attempts.push(`${proxyHost}: ${e.message || 'network error'}`);
         }
     }
-    throw lastErr || new Error('ALL_PROXIES_FAILED');
+    const err = new Error('ALL_PROXIES_FAILED');
+    err.attempts = attempts;
+    throw err;
 }
 
 
@@ -732,7 +747,7 @@ function runRiskCalculations() {
 // ============================================================
 // MAP — LAYER GROUPS + TOGGLE
 // ============================================================
-const layerState = { conflict: true, targets: true, safezones: true, events: true, planes: true, milnuke: true, quakes: true };
+const layerState = { conflict: true, targets: true, safezones: true, events: true, milnuke: true, quakes: true };
 const layerGroups = {};
 
 function toggleLayer(name) {
@@ -863,12 +878,6 @@ function initGlobalMap() {
     layerGroups.events = eventGroup;
     window.pipboyEventGroup = eventGroup;
 
-    // — Live aircraft layer (populated dynamically via OpenSky, see refreshAircraft below)
-    const planeGroup = L.layerGroup();
-    planeGroup.addTo(map);
-    layerGroups.planes = planeGroup;
-    window.pipboyPlaneGroup = planeGroup;
-
     // — User position marker
     const userIcon = L.divIcon({ className: 'pipboy-marker-user', html: '&#9737;', iconSize:[18,18] });
     window.pipboyUserMarker = L.marker([0,0], { icon: userIcon, opacity:0 }).addTo(map);
@@ -946,129 +955,6 @@ function plotNewsEvent(item) {
     `);
     marker.addTo(window.pipboyEventGroup);
     eventMarkerRegistry.push({ marker, expiresAt: Date.now() + EVENT_TTL_MS });
-}
-
-// ============================================================
-// LIVE AIRCRAFT — OpenSky Network (no API key required)
-// ------------------------------------------------------------
-// IMPORTANT — OpenSky tightened anonymous access after this was
-// first written: anonymous (unauthenticated) requests now draw
-// from a shared pool of only ~400 API credits/day, and that pool
-// is shared across everyone hitting the endpoint from the same
-// network egress, not per-person. A global, no-bbox query (the
-// whole world) costs more credits per call than a bounded query.
-// Once the daily pool is exhausted, every request gets rejected
-// until the next day — silently, from the page's point of view,
-// unless we surface the HTTP status (done below).
-//
-// Mitigations applied:
-//   1. A bounding box is now sent so each call costs fewer
-//      credits than a whole-planet query (tune REGION below).
-//   2. Poll interval backed off from 15s to 45s baseline.
-//   3. On repeated failure, backs off further (up to 5min) instead
-//      of hammering an exhausted quota every 45s for nothing.
-//   4. Failures are now shown in the UI label, not just console.warn,
-//      so "why is it empty" has a visible answer in the app itself.
-//
-// If this keeps failing for you, the most reliable fix is a free
-// OpenSky account + OAuth2 client (see comment block further down)
-// — anonymous access on a shared endpoint is best-effort only.
-// ============================================================
-const OPENSKY_URL = 'https://opensky-network.org/api/states/all';
-const OPENSKY_REGION = { lamin: -60, lomin: -170, lamax: 75, lomax: 170 }; // near-global but bounded, cheaper per OpenSky's credit model than no bbox at all
-const MAX_AIRCRAFT_RENDERED = 120;
-const AIRCRAFT_BASE_INTERVAL_MS = 45000;
-const AIRCRAFT_MAX_INTERVAL_MS = 5 * 60 * 1000;
-let aircraftMarkers = [];
-let aircraftFailStreak = 0;
-let aircraftTimer = null;
-
-function buildOpenSkyUrl() {
-    const { lamin, lomin, lamax, lomax } = OPENSKY_REGION;
-    return `${OPENSKY_URL}?lamin=${lamin}&lomin=${lomin}&lamax=${lamax}&lomax=${lomax}`;
-}
-
-function setAircraftStatus(msg) {
-    const el = document.getElementById('aircraftCountLabel');
-    if (el) el.textContent = msg;
-}
-
-// Self-adjusting poll loop: doubles the wait after each consecutive
-// failure (capped at AIRCRAFT_MAX_INTERVAL_MS) instead of hammering
-// an exhausted daily quota every 45s for nothing. Resets to the base
-// interval as soon as a request succeeds again.
-function scheduleNextAircraftRefresh() {
-    if (aircraftTimer) clearTimeout(aircraftTimer);
-    const backoffMultiplier = Math.min(2 ** aircraftFailStreak, AIRCRAFT_MAX_INTERVAL_MS / AIRCRAFT_BASE_INTERVAL_MS);
-    const delay = Math.min(AIRCRAFT_BASE_INTERVAL_MS * backoffMultiplier, AIRCRAFT_MAX_INTERVAL_MS);
-    aircraftTimer = setTimeout(refreshAircraft, delay);
-}
-
-async function refreshAircraft() {
-    if (!window.pipboyPlaneGroup) return;
-    try {
-        // OpenSky doesn't reliably send Access-Control-Allow-Origin for
-        // browser-origin requests (confirmed open issue on their own repo),
-        // so this goes through the shared CORS proxy chain rather than a
-        // direct fetch — the direct call was failing silently every time.
-        const data = await fetchViaProxies(buildOpenSkyUrl());
-        const states = Array.isArray(data?.states) ? data.states : [];
-        aircraftFailStreak = 0;
-
-        // clear previous frame
-        aircraftMarkers.forEach(m => window.pipboyPlaneGroup.removeLayer(m));
-        aircraftMarkers = [];
-
-        if (states.length === 0) {
-            setAircraftStatus('0 (feed returned no aircraft this cycle)');
-            scheduleNextAircraftRefresh();
-            return;
-        }
-
-        // OpenSky state vector indices: 1=callsign, 5=lon, 6=lat, 10=track(heading), 7=baro_altitude, 9=velocity, 8=on_ground
-        const inAir = states.filter(s => s[5] != null && s[6] != null && !s[8]);
-        // sample down if there are more than our render cap (global feed is large)
-        const sampled = inAir.length > MAX_AIRCRAFT_RENDERED
-            ? inAir.filter(() => Math.random() < MAX_AIRCRAFT_RENDERED / inAir.length)
-            : inAir;
-
-        sampled.forEach(s => {
-            const callsign = (s[1] || '').trim() || 'UNKNOWN';
-            const lon = s[5], lat = s[6], heading = s[10] || 0;
-            const altM = s[7]; const velMs = s[9];
-            const icon = L.divIcon({
-                className: 'pipboy-marker-plane',
-                html: `<span style="display:inline-block;transform:rotate(${heading}deg);">&#9992;</span>`,
-                iconSize: [14,14]
-            });
-            const marker = L.marker([lat, lon], { icon });
-            marker.bindPopup(`
-                <div class="info-popup">
-                    <span class="ip-title" style="color:var(--info)">&#9992; ${callsign}</span>
-                    <span class="ip-meta">OpenSky Network &middot; live ADS-B</span>
-                    <span class="ip-body">
-                        Altitude: ${altM != null ? Math.round(altM) + ' m' : 'n/a'}<br>
-                        Speed: ${velMs != null ? Math.round(velMs * 3.6) + ' km/h' : 'n/a'}<br>
-                        Heading: ${Math.round(heading)}&deg;
-                    </span>
-                </div>
-            `);
-            marker.addTo(window.pipboyPlaneGroup);
-            aircraftMarkers.push(marker);
-        });
-
-        setAircraftStatus(String(sampled.length));
-    } catch (e) {
-        aircraftFailStreak++;
-        const reason = e.message === 'HTTP_429' ? 'rate-limited (daily anonymous quota likely exhausted)'
-                     : (e.message === 'HTTP_401' || e.message === 'HTTP_403') ? 'OpenSky rejected this request (auth/quota)'
-                     : e.message?.startsWith('HTTP_') ? 'feed error (' + e.message.replace('HTTP_','') + ')'
-                     : 'feed unreachable (proxy and upstream both failed)';
-        setAircraftStatus('0 — ' + reason);
-        console.warn('OpenSky fetch failed:', e.message, '— fail streak:', aircraftFailStreak);
-        // leave previous frame's markers in place rather than clearing to blank
-    }
-    scheduleNextAircraftRefresh();
 }
 
 // ============================================================
@@ -1156,7 +1042,12 @@ async function refreshMarkets() {
     try {
         const settled = await Promise.allSettled(tickers.map(t => fetchOneQuote(t.symbol)));
         const anySucceeded = settled.some(s => s.status === 'fulfilled' && s.value != null);
-        if (!anySucceeded) throw new Error('ALL_SYMBOLS_FAILED');
+        if (!anySucceeded) {
+            const firstRejection = settled.find(s => s.status === 'rejected');
+            const err = new Error('ALL_SYMBOLS_FAILED');
+            err.attempts = firstRejection?.reason?.attempts;
+            throw err;
+        }
 
         grid.innerHTML = tickers.map((t, i) => {
             const outcome = settled[i];
@@ -1185,7 +1076,8 @@ async function refreshMarkets() {
 
         setFeedStatus('marketFeedStatus', true);
     } catch (e) {
-        console.warn('Market data fetch failed:', e.message);
+        console.warn('Market data fetch failed:', e.message,
+                     e.attempts ? '— per-proxy attempts: ' + e.attempts.join(' | ') : '');
         setFeedStatus('marketFeedStatus', false);
         const reason = e.message === 'BAD_PAYLOAD' ? 'Unexpected response format from feed'
                      : e.message?.startsWith('HTTP_') ? 'Feed error (' + e.message.replace('HTTP_','') + ') — proxy or upstream may be temporarily down'
@@ -1316,27 +1208,40 @@ function setFeedStatus(id, live, partial) {
 // ============================================================
 // RSS / LIVE FEEDS — multi-source aggregation + dedup
 // ------------------------------------------------------------
-// Originally this app polled a single BBC World RSS feed via
-// rss2json. That's now one entry in a list of independent
-// international sources. Each source is fetched in parallel;
-// failures are isolated per-source (one feed dying doesn't take
-// down the others). Results are merged, then deduplicated by a
-// normalized-title fingerprint so the same story breaking across
-// multiple outlets doesn't show up 3-4 times in the ticker.
+// Expanded from the original single-feed (BBC) setup to a wider
+// spread of independent international outlets, so one outlet's
+// editorial focus (or an outage) doesn't define the whole ticker.
+// Each source fetched in parallel; failures isolated per-source.
+// Results merged, then deduplicated by a normalized-title
+// fingerprint so the same story breaking across multiple outlets
+// doesn't show up 3-4 times.
 // ============================================================
 const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
 const GLOBAL_SOURCES = [
-    { name: 'BBC World',      url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
-    { name: 'Reuters World',  url: 'https://www.reutersagency.com/feed/?best-topics=world&post_type=best' },
-    { name: 'Al Jazeera',     url: 'https://www.aljazeera.com/xml/rss/all.xml' },
-    { name: 'Guardian World', url: 'https://www.theguardian.com/world/rss' },
-    { name: 'NYT World',      url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml' },
+    { name: 'BBC World',        url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
+    { name: 'Reuters World',    url: 'https://www.reutersagency.com/feed/?best-topics=world&post_type=best' },
+    { name: 'Al Jazeera',       url: 'https://www.aljazeera.com/xml/rss/all.xml' },
+    { name: 'Guardian World',   url: 'https://www.theguardian.com/world/rss' },
+    { name: 'NYT World',        url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml' },
+    { name: 'AP Top News',      url: 'https://apnews.com/apf-topnews?format=rss' },
+    { name: 'France 24',        url: 'https://www.france24.com/en/rss' },
+    { name: 'DW World',         url: 'https://rss.dw.com/rdf/rss-en-world' },
+    { name: 'NPR World',        url: 'https://feeds.npr.org/1004/rss.xml' },
+    { name: 'Sky News World',   url: 'https://feeds.skynews.com/feeds/rss/world.xml' },
+    { name: 'CBC World',        url: 'https://www.cbc.ca/cmlink/rss-world' },
+    { name: 'ABC News Intl',    url: 'https://abcnews.go.com/abcnews/internationalheadlines' },
 ];
 const POLL_MS = 5 * 60 * 1000;
 
+// Severity keywords checked across English + Spanish, since both global
+// and local (Chile-focused) sources flow through the same classifier.
 function sev(text) {
-    return ['strike','attack','missile','nuclear','invasion','war','ceasefire','explosion','killed','troops']
-        .some(w => text.toLowerCase().includes(w)) ? 'flash-red' : 'flash-orange';
+    const lower = text.toLowerCase();
+    return [
+        'strike','attack','missile','nuclear','invasion','war','ceasefire','explosion','killed','troops',
+        'bomb','bombing','threat','shooting','terror','evacuat','hostage','gunman',
+        'bomba','amenaza','ataque','explosi\u00f3n','atentado','tiroteo','evacuaci\u00f3n','emergencia','alerta'
+    ].some(w => lower.includes(w)) ? 'flash-red' : 'flash-orange';
 }
 
 function normalizeForDedup(title) {
@@ -1375,11 +1280,24 @@ function dedupeItems(items) {
     return out;
 }
 
+// Sort so flagged (flash-red) items surface first — a bombing threat or
+// attack shouldn't be buried under routine flash-orange items just
+// because of fetch order. Stable otherwise (preserves source order).
+function prioritizeSeverity(items) {
+    return items.map((it, i) => ({ it, i }))
+        .sort((a, b) => {
+            const aHot = a.it.type === 'flash-red' ? 0 : 1;
+            const bHot = b.it.type === 'flash-red' ? 0 : 1;
+            return aHot - bHot || a.i - b.i;
+        })
+        .map(x => x.it);
+}
+
 let liveCache = [];
 async function refreshGlobal() {
     const results = await Promise.all(GLOBAL_SOURCES.map(s => fetchRss(s.url, s.name)));
     const okResults = results.filter(Boolean);
-    const merged = dedupeItems(okResults.flat());
+    const merged = prioritizeSeverity(dedupeItems(okResults.flat()));
 
     document.getElementById('sourceCountLabel').textContent = okResults.length;
     document.getElementById('sourceTotalLabel').textContent = GLOBAL_SOURCES.length;
@@ -1393,7 +1311,35 @@ async function refreshGlobal() {
     }
 }
 
-let detectedLabel = null, localCache = [];
+// ============================================================
+// LOCAL / COUNTRY-LEVEL NEWS — multi-query + dedicated outlets
+// ------------------------------------------------------------
+// The original implementation ran exactly one Google News RSS
+// query for "{city}, {country}" — broad enough that travel/
+// lifestyle pieces frequently outranked breaking security news
+// (e.g. a bombing threat) in Google's relevance ranking for that
+// query. Two changes fix this:
+//   1. Several targeted queries run in parallel instead of one
+//      soft query: general country news, plus explicit security/
+//      emergency-terms queries (in Spanish, since this is aimed at
+//      Chile) so hard news surfaces even if it doesn't rank for
+//      the plain city-name search.
+//   2. Direct RSS feeds from major Chilean outlets are added as
+//      independent sources alongside the Google News queries, so
+//      a story doesn't depend on Google's indexing/ranking timing
+//      at all — same multi-source-with-isolated-failure pattern
+//      used for GLOBAL_SOURCES above.
+// ============================================================
+const CHILE_DIRECT_SOURCES = [
+    { name: 'Emol',         url: 'https://www.emol.com/rss/portada.xml' },
+    { name: 'BioBioChile',  url: 'https://www.biobiochile.cl/lista/feed' },
+    { name: 'La Tercera',   url: 'https://www.latercera.com/feed/' },
+    { name: 'CNN Chile',    url: 'https://www.cnnchile.com/feed/' },
+    { name: '24Horas',      url: 'https://www.24horas.cl/rss/portada' },
+];
+const LOCAL_SECURITY_TERMS = ['amenaza de bomba', 'emergencia', 'alerta de seguridad'];
+
+let detectedLabel = null, detectedCountry = null, localCache = [];
 function getCoords() {
     return new Promise((res,rej) => {
         if (!navigator.geolocation) return rej();
@@ -1406,35 +1352,71 @@ async function reverseGeo(lat,lon) {
     const city = a.city||a.town||a.village||a.county;
     const label = [city, a.country].filter(Boolean).join(', ');
     if (!label) throw new Error('no addr');
-    return {label,lat,lon};
+    return {label,lat,lon,country:a.country||null};
 }
 async function ipGeo() {
     const r = await fetch('https://ipapi.co/json/'); const d = await r.json();
     const label = [d.city,d.country_name].filter(Boolean).join(', ');
     if (!label) throw new Error('no label');
-    return {label, lat:d.latitude, lon:d.longitude};
+    return {label, lat:d.latitude, lon:d.longitude, country:d.country_name||null};
 }
 async function detectLoc() {
     try { const c = await getCoords(); return await reverseGeo(c.lat,c.lon); } catch{}
     try { return await ipGeo(); } catch{}
     return null;
 }
+
+function isChile(countryName) {
+    return (countryName || '').toLowerCase().includes('chile');
+}
+
 async function refreshLocal() {
     if (!detectedLabel) {
         const loc = await detectLoc();
         const el = document.getElementById('localSectorLabel');
         if (loc) {
             detectedLabel = loc.label;
+            detectedCountry = loc.country;
             if (el) el.textContent = '— TRACKING: ' + loc.label.toUpperCase();
             if (loc.lat && loc.lon && window.pipboyUserMarker)
                 window.pipboyUserMarker.setLatLng([loc.lat,loc.lon]).setOpacity(1).bindPopup('YOUR POSITION: '+loc.label);
         } else { if (el) el.textContent = '— LOCATION SERVICES UNAVAILABLE'; }
     }
     if (!detectedLabel) { setFeedStatus('localFeedStatus',false); return; }
-    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(detectedLabel)}&hl=en-US&gl=US&ceid=US:en`;
-    const items = await fetchRss(url, 'LOCAL-'+detectedLabel.split(',')[0].toUpperCase());
-    if (items?.length) { localCache = dedupeItems(items); setFeedStatus('localFeedStatus',true); }
-    else setFeedStatus('localFeedStatus',false);
+
+    const countryName = (detectedLabel.split(',').pop() || '').trim();
+    const cityName = detectedLabel.split(',')[0].trim();
+
+    // Build the query list: general local news + explicit security/emergency
+    // terms scoped to the country, so a bombing-threat-type story surfaces
+    // even when it wouldn't win a plain "{city}, {country}" relevance query.
+    const queries = [
+        { q: detectedLabel, src: 'LOCAL-' + cityName.toUpperCase() },
+        { q: `${countryName} noticias hoy`, src: 'LOCAL-' + countryName.toUpperCase() },
+        ...LOCAL_SECURITY_TERMS.map(term => ({
+            q: `${countryName} ${term}`,
+            src: 'LOCAL-ALERT-' + countryName.toUpperCase()
+        })),
+    ];
+    const googleNewsFetches = queries.map(({ q, src }) => {
+        const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=es-CL&gl=CL&ceid=CL:es`;
+        return fetchRss(url, src);
+    });
+
+    // If we're in Chile, also pull direct outlet RSS feeds in parallel —
+    // independent of Google's indexing, so a hard-news story shows up as
+    // soon as the outlet itself publishes it, same multi-source pattern as
+    // the global ticker.
+    const directFetches = isChile(detectedCountry || countryName)
+        ? CHILE_DIRECT_SOURCES.map(s => fetchRss(s.url, s.name))
+        : [];
+
+    const results = await Promise.all([...googleNewsFetches, ...directFetches]);
+    const okResults = results.filter(Boolean);
+    const merged = prioritizeSeverity(dedupeItems(okResults.flat()));
+
+    if (merged.length) { localCache = merged; setFeedStatus('localFeedStatus', true); }
+    else setFeedStatus('localFeedStatus', false);
 }
 
 // ============================================================
@@ -1448,9 +1430,9 @@ async function refreshLocal() {
 //   1. Get a free AISStream.io API key: https://aisstream.io
 //   2. Open a WebSocket to wss://stream.aisstream.io/v0/stream
 //   3. Send a subscription message with your API key + bounding box
-//   4. For each PositionReport message, plot a marker similar to
-//      refreshAircraft() above, into a new 'ships' layerGroup
-//      (mirror the .pipboy-marker-plane CSS pattern with a ship glyph)
+//   4. For each PositionReport message, plot a marker into a new
+//      'ships' layerGroup, following the same pattern as the
+//      earthquake/event layers above (L.divIcon + bindPopup)
 //   5. Add a "Live Maritime" button to .map-controls, matching the
 //      existing layer-btn pattern.
 //
@@ -1469,7 +1451,6 @@ initGlobalMap();
 
 refreshGlobal().then(() => injectAlarm('newsTicker', () => liveCache.length ? liveCache : breakingAlarms));
 refreshLocal().then(()  => injectAlarm('localTicker', () => localCache.length ? localCache : localMockAlarms));
-refreshAircraft();
 refreshMarkets();
 refreshEarthquakes();
 
@@ -1478,12 +1459,8 @@ setInterval(() => injectAlarm('localTicker', () => localCache.length ? localCach
 setInterval(pruneExpiredEventMarkers, 60000);
 setInterval(refreshGlobal, POLL_MS);
 setInterval(refreshLocal,  POLL_MS);
-// refreshAircraft no longer uses setInterval — it self-schedules via
-// scheduleNextAircraftRefresh() with progressive backoff on failure (see above)
-setInterval(refreshMarkets, 60000); // markets move slower than news/aircraft; 1min cadence is plenty
+setInterval(refreshMarkets, 60000); // markets move slower than news; 1min cadence is plenty
 setInterval(refreshEarthquakes, 90000); // USGS feed itself updates every ~5min; polling more often than that is pointless
 </script>
 </body>
 </html>
-
-
