@@ -578,7 +578,13 @@ const DataFetcher = (() => {
     const PROXIES = [
         url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
         url => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
-        url => 'https://proxy.corsfix.com/?' + url,
+        // BUG FIX: this was 'https://proxy.corsfix.com/?' + url (unencoded) —
+        // Yahoo's own query string (?range=1d&interval=1d) collided with
+        // corsfix's own '?' separator, producing a mangled double-query URL
+        // that corsfix's parser rejected with HTTP 403. Encoding the target
+        // URL fixes that exact failure mode seen in the console.
+        url => 'https://proxy.corsfix.com/?' + encodeURIComponent(url),
+        url => 'https://thingproxy.freeboard.io/fetch/' + url,
     ];
 
     async function viaProxies(targetUrl) {
@@ -599,12 +605,25 @@ const DataFetcher = (() => {
         throw err;
     }
 
-    // Direct call (no proxy hop, no third-party dependency). Used for
-    // endpoints confirmed to send their own CORS headers (OpenSky, USGS).
+    // Tries a direct fetch first — no proxy hop, no third-party
+    // dependency, works fine for USGS. Falls back to the proxy chain if
+    // the direct call fails. This matters for OpenSky specifically: its
+    // /states/all endpoint DOES send an Access-Control-Allow-Origin
+    // header, but with the WRONG value (its own domain instead of the
+    // caller's), which the browser still blocks — confirmed directly in
+    // console output: "the 'Access-Control-Allow-Origin' header has a
+    // value 'https://opensky-network.org' that is not equal to the
+    // supplied origin." That's a server-side misconfiguration no client
+    // code can work around; routing through a proxy sidesteps it because
+    // the proxy (not the browser) is the one talking to OpenSky.
     async function direct(targetUrl) {
-        const r = await fetch(targetUrl);
-        if (!r.ok) throw new Error('HTTP_' + r.status);
-        return await r.json();
+        try {
+            const r = await fetch(targetUrl);
+            if (r.ok) return await r.json();
+        } catch (e) {
+            // CORS-blocked or network error — fall through to proxies below
+        }
+        return viaProxies(targetUrl);
     }
 
     // ---- RSS (rss2json passthrough — closest browser-only
@@ -1187,7 +1206,8 @@ const MapManager = (() => {
                          : e.message?.startsWith('HTTP_') ? 'feed error (' + e.message.replace('HTTP_','') + ')'
                          : 'feed unreachable this cycle';
             setAircraftStatus('0 — ' + reason);
-            console.warn('OpenSky fetch failed:', e.message, '— fail streak:', aircraftFailStreak);
+            console.warn('OpenSky fetch failed:', e.message, '— fail streak:', aircraftFailStreak,
+                         e.attempts ? '— per-proxy attempts: ' + e.attempts.join(' | ') : '');
         }
         scheduleNextAircraftRefresh();
     }
@@ -1217,11 +1237,18 @@ const MapManager = (() => {
 const AlarmManager = (() => {
     const GLOBAL_SOURCES = [
         { name: 'BBC World',        url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
-        { name: 'Reuters World',    url: 'https://www.reutersagency.com/feed/?best-topics=world&post_type=best' },
+        // Reuters' legacy feed (reutersagency.com/feed) and AP's legacy feed
+        // (apnews.com/apf-topnews?format=rss) both confirmed dead as of 2026
+        // — Reuters/AP have stopped serving working public RSS for these
+        // paths, which is what produced the 422s from rss2json (it was
+        // being handed an HTML page, not XML, and couldn't parse it).
+        // Replaced with two outlets confirmed to still publish live RSS.
+        { name: 'Washington Post',  url: 'https://feeds.washingtonpost.com/rss/world' },
+        { name: 'WSJ World News',   url: 'https://feeds.a.dj.com/rss/RSSWorldNews.xml' },
         { name: 'Al Jazeera',       url: 'https://www.aljazeera.com/xml/rss/all.xml' },
         { name: 'Guardian World',   url: 'https://www.theguardian.com/world/rss' },
         { name: 'NYT World',        url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml' },
-        { name: 'AP Top News',      url: 'https://apnews.com/apf-topnews?format=rss' },
+        { name: 'RFI International',url: 'https://www.rfi.fr/en/international/rss' },
         { name: 'France 24',        url: 'https://www.france24.com/en/rss' },
         { name: 'DW World',         url: 'https://rss.dw.com/rdf/rss-en-world' },
         { name: 'NPR World',        url: 'https://feeds.npr.org/1004/rss.xml' },
@@ -1229,7 +1256,19 @@ const AlarmManager = (() => {
         { name: 'CBC World',        url: 'https://www.cbc.ca/cmlink/rss-world' },
         { name: 'ABC News Intl',    url: 'https://abcnews.go.com/abcnews/internationalheadlines' },
     ];
+    // These direct outlet feeds are a best-effort addition on top of the
+    // Google News queries above (which remain the reliable backbone for
+    // local coverage, since they don't depend on a specific outlet's RSS
+    // staying up). Verified working: Cooperativa.cl publishes a real,
+    // current RSS index. The others (Emol, BioBioChile, La Tercera, CNN
+    // Chile, 24Horas) returned HTTP 422/500 from rss2json in testing —
+    // meaning either their RSS paths changed, or they no longer expose a
+    // working public feed at all; I could not confirm working URLs for
+    // them. Each failing source here is silently dropped by fetchRss's
+    // existing try/catch (one feed dying doesn't block the others), so
+    // leaving them in is low-risk, but don't rely on them being populated.
     const CHILE_DIRECT_SOURCES = [
+        { name: 'Cooperativa',  url: 'https://www.cooperativa.cl/noticias/site/tax/port/all/rss.xml' },
         { name: 'Emol',         url: 'https://www.emol.com/rss/portada.xml' },
         { name: 'BioBioChile',  url: 'https://www.biobiochile.cl/lista/feed' },
         { name: 'La Tercera',   url: 'https://www.latercera.com/feed/' },
