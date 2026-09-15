@@ -6,9 +6,6 @@
     <title>QUANTUM RISK DESK — Strategic Intelligence Fusion Center v2026.4</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <style>
-        /* ============================================================
-         * ROOT VARIABLES — preserved from v2026.3 + new domain tokens
-         * ============================================================ */
         :root {
             --bg-main: #040f08;
             --bg-card: #081f10;
@@ -26,8 +23,6 @@
             --supply: #00d4ff;
             --bio: #ff6b6b;
         }
-
-        /* ---- base / CRT (unchanged from v2026.3) ---- */
         body {
             font-family: 'Courier New', ui-monospace, Menlo, Consolas, monospace;
             letter-spacing: 0.3px;
@@ -48,9 +43,7 @@
         }
         @keyframes scanroll { from { background-position: 0 0; } to { background-position: 0 120px; } }
         @keyframes crtFlicker { 0%,100%{opacity:1;} 92%{opacity:1;} 93%{opacity:0.95;} 94%{opacity:1;} 96%{opacity:0.97;} }
-
         .container { max-width: 1400px; margin: 0 auto; position: relative; }
-
         header {
             border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px;
             display: flex; justify-content: space-between; align-items: center;
@@ -62,11 +55,9 @@
             animation: blink 1s step-end infinite;
         }
         @keyframes blink { 50% { opacity: 0; } }
-
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
         .map-span { grid-column: 1 / -1; display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
         @media (max-width: 900px) { .map-span { grid-template-columns: 1fr; } }
-
         .card {
             background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 4px;
             padding: 24px; display: flex; flex-direction: column; justify-content: space-between;
@@ -78,7 +69,6 @@
         }
         .card::before { top:-1px; left:-1px; border-top:2px solid var(--text-light); border-left:2px solid var(--text-light); }
         .card::after  { bottom:-1px; right:-1px; border-bottom:2px solid var(--text-light); border-right:2px solid var(--text-light); }
-
         .card h2 {
             margin-top: 0; font-size: 0.95rem; color: var(--text-dark);
             text-transform: uppercase; letter-spacing: 1px;
@@ -90,12 +80,9 @@
         .status-online { color:var(--success); }
         .status-offline { color:var(--danger); }
         .status-partial { color: var(--warning); }
-
         h1, h2, .metric, .feed-status { text-shadow: 0 0 6px currentColor; }
         .metric { font-size:3.5rem; font-weight:800; text-align:center; margin:16px 0; font-family:monospace; }
         .description { color:var(--text-dark); font-size:0.9rem; text-align:center; line-height:1.4; }
-
-        /* ---- MAP LEGEND ---- */
         .map-legend {
             position: absolute; bottom: 12px; left: 12px; z-index: 1000;
             background: rgba(8,31,16,0.92); border: 1px solid var(--border);
@@ -115,8 +102,6 @@
         .legend-row { display:flex; align-items:center; gap:7px; margin-bottom:5px; }
         .legend-row:last-child { margin-bottom:0; }
         .legend-dot { font-size:13px; line-height:1; }
-
-        /* ---- MAP LAYER BUTTONS ---- */
         .map-controls { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
         .map-controls-section { margin-bottom: 6px; }
         .map-controls-label { font-size: 0.6rem; color: var(--text-dark); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: block; }
@@ -137,8 +122,6 @@
         .layer-btn.active-space   { border-color:var(--space);  color:var(--space);  background:rgba(155,127,255,0.07); text-shadow:0 0 5px var(--space); }
         .layer-btn.active-supply  { border-color:var(--supply); color:var(--supply); background:rgba(0,212,255,0.07); text-shadow:0 0 5px var(--supply); }
         .key-hint { opacity: 0.55; font-size: 0.6rem; margin-left: 2px; }
-
-        /* ---- MAP WRAPPER ---- */
         .map-wrapper {
             position: relative; width: 100%; height: 430px;
             border-radius: 4px; overflow: hidden; border: 1px solid var(--border); background: #000;
@@ -148,8 +131,6 @@
         #globalMap .leaflet-control-zoom a { background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); }
         #globalMap .leaflet-control-attribution { background:rgba(8,31,16,0.8); color:var(--text-dark); }
         #globalMap .leaflet-popup-content-wrapper, #globalMap .leaflet-popup-tip { background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); }
-
-        /* ---- MARKERS ---- */
         .pipboy-marker       { color:var(--text-light);  font-size:14px; text-align:center; line-height:16px; text-shadow:0 0 6px var(--text-light); }
         .pipboy-marker-hot   { color:var(--danger);      font-size:15px; text-align:center; line-height:16px; text-shadow:0 0 8px var(--danger); animation: pulseRed 1.8s infinite; }
         .pipboy-marker-safe  { color:var(--success);     font-size:14px; text-align:center; line-height:16px; text-shadow:0 0 8px var(--success); animation: pulseSafe 2.5s infinite; }
@@ -162,14 +143,11 @@
         .pipboy-marker-naval { color:var(--naval);        font-size:14px; text-align:center; line-height:14px; text-shadow:0 0 7px var(--naval); animation: pulseBlue 2s infinite; }
         .pipboy-marker-supply{ color:var(--econ);         font-size:14px; text-align:center; line-height:14px; text-shadow:0 0 6px var(--econ); }
         .pipboy-marker-cyber { color:var(--cyber);        font-size:13px; text-align:center; line-height:13px; text-shadow:0 0 6px var(--cyber); animation: pulseCyber 1.4s infinite; }
-
         @keyframes pulseRed  { 0%,100%{opacity:1;} 50%{opacity:0.45;} }
         @keyframes pulseSafe { 0%,100%{opacity:1;} 50%{opacity:0.55;} }
         @keyframes pulseUser { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(1.3);} }
         @keyframes pulseBlue { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
         @keyframes pulseCyber{ 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(1.2);} }
-
-        /* ---- POPUP STYLES ---- */
         .safe-popup { font-size:0.78rem; line-height:1.5; }
         .safe-popup .sp-title { color:var(--success); font-weight:700; font-size:0.85rem; display:block; margin-bottom:4px; text-shadow:0 0 5px var(--success); }
         .safe-popup .sp-score { color:var(--warning); font-size:0.8rem; display:block; margin-bottom:6px; }
@@ -180,8 +158,6 @@
         .info-popup .ip-meta  { color:var(--text-dark); font-size:0.7rem; display:block; margin-bottom:4px; }
         .info-popup .ip-body  { color:var(--text-light); }
         .country-popup-link { display:block; margin-top:8px; cursor:pointer; color:var(--info); font-size:0.75rem; text-decoration:underline; }
-
-        /* ---- DEFCON ---- */
         .defcon-legend { margin-top:16px; display:flex; flex-direction:column; gap:5px; }
         .defcon-row { display:flex; align-items:center; gap:8px; font-size:0.72rem; color:var(--text-dark); padding:4px 6px; border-radius:2px; transition:background 0.2s; }
         .defcon-row.active        { background:rgba(93,255,163,0.06); color:var(--text-light); }
@@ -191,8 +167,6 @@
         .dot-d { background:var(--danger);  box-shadow:0 0 4px var(--danger); }
         .dot-w { background:var(--warning); box-shadow:0 0 4px var(--warning); }
         .dot-g { background:var(--success); box-shadow:0 0 4px var(--success); }
-
-        /* ---- VECTOR BREAKDOWN ---- */
         .vector-row { display:flex; flex-direction:column; gap:18px; }
         .vector-item { display:flex; flex-direction:column; gap:6px; }
         .vector-meta { display:flex; justify-content:space-between; align-items:baseline; font-size:0.85rem; }
@@ -204,8 +178,6 @@
         .bar-danger  { background:var(--danger);  color:var(--danger); }
         .bar-warning { background:var(--warning); color:var(--warning); }
         .vector-lock-note { margin-top:20px; font-size:0.72rem; color:var(--text-dark); border-top:1px solid var(--border); padding-top:12px; text-align:center; letter-spacing:0.5px; }
-
-        /* ---- NEWS TICKER ---- */
         .news-ticker { height:390px; overflow-y:auto; padding-right:8px; }
         .news-alarm { padding:12px; background:rgba(93,255,163,0.03); border-radius:2px; border-left:4px solid var(--border); margin-bottom:12px; font-size:0.85rem; animation:fadeIn 0.5s ease-out; }
         .news-alarm.flash-red    { border-left-color:var(--danger);  background:rgba(255,59,59,0.05); }
@@ -214,8 +186,6 @@
         .news-link { color:var(--text-dark); font-size:0.68rem; text-decoration:none; display:inline-block; margin-top:4px; border-bottom:1px dotted var(--text-dark); }
         .news-link:hover { color:var(--text-light); border-color:var(--text-light); }
         @keyframes fadeIn { from{opacity:0;transform:translateY(-5px);} to{opacity:1;transform:translateY(0);} }
-
-        /* ---- SAFE ZONES ---- */
         .safezone-grid { display:flex; flex-direction:column; gap:10px; }
         .safezone-item { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; background:rgba(57,255,20,0.03); border:1px solid #1d4428; border-left:3px solid var(--success); border-radius:2px; font-size:0.8rem; }
         .safezone-rank { font-size:1.1rem; font-weight:800; font-family:monospace; color:var(--success); text-shadow:0 0 6px var(--success); min-width:28px; text-align:center; line-height:1.2; }
@@ -224,8 +194,6 @@
         .safezone-why { color:var(--text-dark); line-height:1.4; }
         .safezone-caveat { color:#1d4428; font-style:italic; font-size:0.68rem; display:block; margin-top:3px; }
         .safezone-disclaimer { margin-top:14px; font-size:0.7rem; color:var(--text-dark); border-top:1px solid var(--border); padding-top:10px; text-align:center; font-style:italic; }
-
-        /* ---- MARKET ---- */
         .market-tabs { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
         .market-tab { font-family:monospace; font-size:0.72rem; padding:4px 12px; border-radius:2px; cursor:pointer; border:1px solid var(--border); background:var(--bg-main); color:var(--text-dark); letter-spacing:0.5px; text-transform:uppercase; transition:all 0.15s; }
         .market-tab.active { border-color:var(--text-light); color:var(--text-light); background:rgba(93,255,163,0.08); text-shadow:0 0 5px var(--text-light); }
@@ -242,8 +210,6 @@
         .ticker-change.down { color:var(--danger); }
         .ticker-stale { font-size:0.62rem; color:var(--text-dark); font-style:italic; margin-top:2px; }
         .market-disclaimer { margin-top:14px; font-size:0.7rem; color:var(--text-dark); border-top:1px solid var(--border); padding-top:10px; text-align:center; font-style:italic; }
-
-        /* ---- STRATEGIC ASSESSMENT (existing) ---- */
         .scenario-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
         .scenario-panel { display:flex; flex-direction:column; gap:8px; padding:14px 16px; background:rgba(93,255,163,0.025); border:1px solid var(--border); border-left:3px solid var(--text-dark); border-radius:2px; }
         .scenario-panel.path-status_quo    { border-left-color:var(--text-light); }
@@ -257,23 +223,13 @@
         .scenario-bar-fill { height:100%; border-radius:2px; box-shadow:0 0 6px currentColor; }
         .scenario-driver { font-size:0.74rem; color:var(--text-light); line-height:1.4; }
         .scenario-confidence { font-size:0.65rem; color:var(--text-dark); font-style:italic; }
-
-        /* ---- DATA FOOTER ---- */
         .data-meta-footer { margin-top:24px; padding-top:14px; border-top:1px solid var(--border); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; font-size:0.68rem; color:var(--text-dark); letter-spacing:0.4px; }
         .data-meta-footer span strong { color:var(--text-light); }
-
-        /* ============================================================
-         * NEW STYLES — VIEW NAVIGATION (P15 tab system)
-         * ============================================================ */
         .view-nav { display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:14px; flex-wrap:wrap; }
         .view-tab { font-family:monospace; font-size:0.75rem; padding:5px 16px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-dark); cursor:pointer; text-transform:uppercase; letter-spacing:1px; border-radius:2px; transition:all 0.15s; }
         .view-tab:hover:not(.active) { color:var(--text-light); opacity:0.7; }
         .view-tab.active { border-color:var(--text-light); color:var(--text-light); background:rgba(93,255,163,0.08); text-shadow:0 0 5px var(--text-light); }
         .view[hidden] { display:none !important; }
-
-        /* ============================================================
-         * P1 — STRATEGIC INTEL ENGINE BANNER
-         * ============================================================ */
         .intel-banner { border-color:var(--info); margin-bottom:24px; }
         .intel-banner h2 { color:var(--info); text-shadow:0 0 6px var(--info); }
         .intel-main-row { display:flex; align-items:flex-start; gap:24px; flex-wrap:wrap; }
@@ -292,10 +248,6 @@
         .conf-medium { border-color:var(--warning); color:var(--warning); background:rgba(255,176,0,0.05); }
         .conf-low    { border-color:var(--text-dark); color:var(--text-dark); background:transparent; }
         .panel-confidence { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:14px; padding-top:10px; border-top:1px solid var(--border); font-size:0.68rem; color:var(--text-dark); }
-
-        /* ============================================================
-         * P2 — SITREP PANEL
-         * ============================================================ */
         .sitrep-controls { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
         .sitrep-meta { font-size:0.7rem; color:var(--text-dark); font-style:italic; flex:1; }
         .sitrep-content { font-size:0.82rem; line-height:1.7; color:var(--text-light); max-height:420px; overflow-y:auto; padding-right:6px; }
@@ -303,10 +255,6 @@
         .sitrep-placeholder { color:var(--text-dark); font-style:italic; font-size:0.82rem; padding:24px; text-align:center; border:1px dashed var(--border); border-radius:2px; }
         .sitrep-item { padding:4px 0; color:var(--text-light); font-size:0.8rem; }
         .sitrep-item::before { content:'▶ '; color:var(--text-dark); }
-
-        /* ============================================================
-         * P3 — ESCALATION TIMELINE
-         * ============================================================ */
         .timeline-track { position:relative; padding:12px 0 12px 40px; }
         .timeline-track::before { content:''; position:absolute; left:20px; top:0; bottom:0; width:2px; background:linear-gradient(to bottom, var(--danger), var(--warning), var(--text-dark)); opacity:0.4; }
         .timeline-event { display:flex; align-items:flex-start; gap:14px; margin-bottom:16px; cursor:pointer; position:relative; }
@@ -321,10 +269,6 @@
         .tl-arrow { font-size:0.68rem; color:var(--text-dark); padding:2px 0 6px 0; display:block; }
         .tl-controls { display:flex; gap:8px; margin-bottom:14px; align-items:center; flex-wrap:wrap; }
         .timeline-note { font-size:0.7rem; color:var(--text-dark); font-style:italic; margin-top:12px; border-top:1px solid var(--border); padding-top:10px; }
-
-        /* ============================================================
-         * P4 — COUNTRY INTELLIGENCE MODAL
-         * ============================================================ */
         .modal-overlay { position:fixed; inset:0; background:rgba(4,15,8,0.93); z-index:10000; display:flex; align-items:flex-start; justify-content:center; padding:32px 16px; overflow-y:auto; }
         .modal-overlay[hidden] { display:none !important; }
         .modal-box { background:var(--bg-card); border:1px solid var(--border); border-radius:4px; width:100%; max-width:920px; padding:28px; position:relative; }
@@ -348,10 +292,6 @@
         .c-tag.warn { border-color:var(--warning); color:var(--warning); }
         .c-bar { width:100%; height:4px; background:#0d2e16; border-radius:2px; overflow:hidden; margin-top:3px; }
         .c-bar-fill { height:100%; border-radius:2px; }
-
-        /* ============================================================
-         * P6 — EARLY WARNING ENGINE
-         * ============================================================ */
         .ew-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; }
         .ew-cell { padding:12px; background:rgba(93,255,163,0.02); border:1px solid var(--border); border-radius:2px; }
         .ew-cell-name { font-size:0.68rem; color:var(--text-dark); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
@@ -363,10 +303,6 @@
         .ew-drivers { font-size:0.68rem; color:var(--text-dark); line-height:1.5; }
         .ew-conf { font-size:0.62rem; color:var(--text-dark); font-style:italic; margin-top:5px; }
         .ew-reason { font-size:0.7rem; color:var(--text-dark); margin-top:6px; padding-top:6px; border-top:1px solid var(--border); line-height:1.4; }
-
-        /* ============================================================
-         * P7 — SUPPLY CHAIN (view panel)
-         * ============================================================ */
         .supply-commodity-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-bottom:20px; }
         .supply-card { padding:14px; background:rgba(93,255,163,0.02); border:1px solid var(--border); border-radius:2px; border-left:3px solid var(--text-dark); }
         .supply-card.risk-critical { border-left-color:var(--danger); }
@@ -385,19 +321,11 @@
         .chokepoint-name { font-size:0.82rem; font-weight:700; color:var(--naval); margin-bottom:5px; }
         .chokepoint-status { font-size:0.72rem; color:var(--text-dark); line-height:1.4; margin-bottom:6px; }
         .chokepoint-risk-row { display:flex; justify-content:space-between; font-size:0.72rem; margin-bottom:4px; }
-
-        /* ============================================================
-         * P8 — NAVAL INTEL (card within main view)
-         * ============================================================ */
         .naval-list { display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; }
         .naval-item { padding:9px 12px; background:rgba(0,212,255,0.03); border:1px solid rgba(0,212,255,0.15); border-radius:2px; display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
         .naval-name { font-size:0.8rem; font-weight:700; color:var(--naval); }
         .naval-type { font-size:0.65rem; color:var(--text-dark); text-transform:uppercase; }
         .naval-loc  { font-size:0.72rem; color:var(--text-light); text-align:right; }
-
-        /* ============================================================
-         * P9 — SPACE DOMAIN (view panel)
-         * ============================================================ */
         .space-stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:20px; }
         .space-stat-card { padding:14px; background:rgba(155,127,255,0.03); border:1px solid rgba(155,127,255,0.2); border-radius:2px; text-align:center; }
         .space-stat-title { font-size:0.68rem; color:var(--space); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
@@ -411,10 +339,6 @@
         .launch-entry-meta { font-size:0.7rem; color:var(--text-dark); }
         .gps-status { padding:12px; border:1px solid var(--border); border-radius:2px; margin-top:14px; }
         .gps-status-title { font-size:0.68rem; color:var(--text-dark); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
-
-        /* ============================================================
-         * P10 — ECONOMIC RISK ENGINE (card)
-         * ============================================================ */
         .econ-score-big { font-size:3.5rem; font-weight:800; font-family:monospace; text-align:center; margin:10px 0 4px 0; }
         .econ-label { text-align:center; font-size:0.68rem; color:var(--text-dark); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
         .econ-inputs { display:flex; flex-direction:column; gap:6px; }
@@ -423,10 +347,6 @@
         .econ-input-val { color:var(--text-light); font-family:monospace; }
         .econ-trend-up   { color:var(--danger); }
         .econ-trend-down { color:var(--success); }
-
-        /* ============================================================
-         * P11 — PANDEMIC MONITOR (card)
-         * ============================================================ */
         .pandemic-list { display:flex; flex-direction:column; gap:8px; max-height:270px; overflow-y:auto; }
         .pandemic-entry { padding:9px 12px; background:rgba(255,59,59,0.03); border:1px solid rgba(255,59,59,0.15); border-radius:2px; }
         .pandemic-name { font-size:0.82rem; font-weight:700; color:var(--danger); margin-bottom:3px; }
@@ -435,19 +355,13 @@
         .spread-high { border-color:var(--danger); color:var(--danger); }
         .spread-med  { border-color:var(--warning); color:var(--warning); }
         .spread-low  { border-color:var(--success); color:var(--success); }
-
-        /* ============================================================
-         * P12 — CIVIL UNREST TRACKER (card)
-         * ============================================================ */
         .unrest-list { display:flex; flex-direction:column; gap:8px; max-height:270px; overflow-y:auto; }
         .unrest-entry { padding:9px 12px; background:rgba(255,176,0,0.03); border:1px solid rgba(255,176,0,0.15); border-radius:2px; }
         .unrest-type { font-size:0.62rem; color:var(--text-dark); text-transform:uppercase; letter-spacing:0.5px; }
         .unrest-name { font-size:0.82rem; font-weight:700; color:var(--warning); }
         .unrest-meta { font-size:0.7rem; color:var(--text-dark); margin-top:2px; }
-
-        /* ============================================================
-         * P13 — SCENARIO ANALYSIS (view panel)
-         * ============================================================ */
+        .unrest-entry.is-live { border-left:3px solid var(--danger); background:rgba(255,59,59,0.04); }
+        .unrest-live-badge { font-size:0.58rem; padding:1px 5px; border:1px solid var(--danger); color:var(--danger); border-radius:2px; margin-left:6px; letter-spacing:0.5px; }
         .scenario-disclaimer-banner { font-size:0.72rem; color:var(--warning); border:1px solid rgba(255,176,0,0.3); background:rgba(255,176,0,0.04); padding:8px 14px; border-radius:2px; margin-bottom:16px; text-align:center; letter-spacing:0.5px; }
         .scenario-selector { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
         .scenario-pick-btn { font-family:monospace; font-size:0.72rem; padding:6px 14px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-dark); cursor:pointer; text-transform:uppercase; letter-spacing:0.5px; border-radius:2px; transition:all 0.15s; }
@@ -464,10 +378,6 @@
         .impact-low      { color:var(--success); }
         .scenario-ai-narrative { padding:16px; background:rgba(93,255,163,0.02); border:1px solid var(--border); border-radius:2px; font-size:0.82rem; line-height:1.7; color:var(--text-light); margin-top:16px; }
         .scenario-ai-placeholder { color:var(--text-dark); font-style:italic; font-size:0.82rem; padding:24px; text-align:center; border:1px dashed var(--border); border-radius:2px; }
-
-        /* ============================================================
-         * P15 — FUSION CENTER (view panel)
-         * ============================================================ */
         .fusion-layout { display:grid; grid-template-columns:2fr 1fr; gap:24px; }
         @media (max-width:900px) { .fusion-layout { grid-template-columns:1fr; } }
         .fusion-chain { display:flex; flex-direction:column; }
@@ -491,7 +401,7 @@
 <div class="container">
 
     <header>
-        <h1>QUANTUM RISK DESK v2026.4 — SIFCENTER<span class="blink-cursor">&nbsp;</span></h1>
+        <h1>QUANTUM RISK DESK v2026.5 — SIFCENTER<span class="blink-cursor">&nbsp;</span></h1>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <div style="font-family:monospace;font-size:0.85rem;color:var(--warning);text-shadow:0 0 6px var(--warning);">[ STRATEGIC INTEL FUSION — JUNE 2026 ]</div>
             <button class="layer-btn active-info" id="btn-sitrep" onclick="SitrepManager.generate()" title="Generate AI SITREP (X)">&#127757; GEN SITREP</button>
@@ -500,7 +410,6 @@
         </div>
     </header>
 
-    <!-- View Navigation (P15 tab system) -->
     <nav class="view-nav" id="viewNav">
         <button class="view-tab active" onclick="ViewManager.switchTo('main')">&#9670; Main Intel</button>
         <button class="view-tab" onclick="ViewManager.switchTo('fusion')">&#9790; Fusion Center</button>
@@ -509,12 +418,8 @@
         <button class="view-tab" onclick="ViewManager.switchTo('scenarios')">&#9878; Scenarios</button>
     </nav>
 
-    <!-- ================================================================
-         VIEW: MAIN
-         ================================================================ -->
     <div id="view-main" class="view">
 
-        <!-- P1: AI Strategic Intel Engine banner -->
         <div class="card intel-banner" id="strategicIntelCard">
             <h2 class="card-header-row">
                 <span>&#127907; AI Strategic Intelligence Assessment</span>
@@ -542,7 +447,6 @@
             </div>
         </div>
 
-        <!-- MAP + ALARMS -->
         <div class="map-span">
             <div class="card">
                 <h2>Global Sector Map — Threat, Risk &amp; Intelligence Overlay</h2>
@@ -582,12 +486,12 @@
                             <div class="legend-row"><span class="legend-dot" style="color:#ff7a3d">&#9760;</span> Military Base</div>
                             <div class="legend-row"><span class="legend-dot" style="color:#ffe14d">&#9762;</span> Civil Nuclear</div>
                             <div class="legend-row"><span class="legend-dot" style="color:#d97cff">&#9711;</span> Earthquake (USGS)</div>
-                            <div class="legend-row"><span class="legend-dot" style="color:var(--info)">&#9992;</span> Aircraft (OpenSky)</div>
+                            <div class="legend-row"><span class="legend-dot" style="color:var(--info)">&#9992;</span> Aircraft (Live Hotspot Feed)</div>
                             <div class="legend-row"><span class="legend-dot" style="color:var(--naval)">&#9875;</span> Naval Asset</div>
                             <div class="legend-row"><span class="legend-dot" style="color:var(--cyber)">&#128187;</span> Cyber Threat Zone</div>
                             <div class="legend-row"><span class="legend-dot" style="color:var(--econ)">&#9679;</span> Chokepoint</div>
                             <div class="legend-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);color:var(--text-dark);font-size:0.62rem;">
-                                C/T/S/N/M/Q/A/Y/E/V/H toggle &middot; F fullscreen &middot; X sitrep &middot; P export
+                                C/T/S/N/M/Q/A/Y/E/V/H toggle &middot; F fullscreen &middot; X sitrep &middot; P export &middot; click map for country intel
                             </div>
                         </div>
                     </div>
@@ -601,9 +505,8 @@
                 </h2>
                 <div class="news-ticker" id="newsTicker"></div>
             </div>
-        </div><!-- /map-span -->
+        </div>
 
-        <!-- GRID ROW 1: DEFCON + Clock + Vectors + Early Warning (P6) -->
         <div class="grid" style="margin-top:24px;">
             <div class="card">
                 <h2>Predictive Military Posture</h2>
@@ -658,7 +561,6 @@
                 <p class="vector-lock-note">&#9632; VECTORS LOCKED — calibrated to latest published assessments June 2026.</p>
             </div>
 
-            <!-- P6: Early Warning Engine -->
             <div class="card">
                 <h2 class="card-header-row">
                     <span>&#9888; Early Warning Engine</span>
@@ -672,10 +574,8 @@
             </div>
         </div>
 
-        <!-- GRID ROW 2: Economic Risk (P10) + Naval (P8) + Pandemic (P11) + Civil Unrest (P12) -->
         <div class="grid" style="margin-top:24px;">
 
-            <!-- P10: Economic Risk Engine -->
             <div class="card">
                 <h2 class="card-header-row">
                     <span>&#9679; Economic Risk Engine</span>
@@ -689,7 +589,6 @@
                 </div>
             </div>
 
-            <!-- P8: Naval Intelligence -->
             <div class="card">
                 <h2 class="card-header-row">
                     <span>&#9875; Naval Intelligence</span>
@@ -702,7 +601,6 @@
                 </div>
             </div>
 
-            <!-- P11: Pandemic Monitor -->
             <div class="card">
                 <h2 class="card-header-row">
                     <span>&#128737; Pandemic &amp; Biosecurity</span>
@@ -715,7 +613,6 @@
                 </div>
             </div>
 
-            <!-- P12: Civil Unrest Tracker -->
             <div class="card">
                 <h2 class="card-header-row">
                     <span>&#9889; Civil Unrest &amp; Elections</span>
@@ -723,13 +620,12 @@
                 </h2>
                 <div class="unrest-list" id="unrestList"></div>
                 <div class="panel-confidence">
-                    <span style="font-size:0.68rem;color:var(--text-dark);">Sources: ACLED, news feeds, static election schedule.</span>
+                    <span style="font-size:0.68rem;color:var(--text-dark);" id="unrestSourceLabel">Sources: ACLED (baseline), live news feeds, static election schedule.</span>
                     <span class="confidence-badge conf-low">LOW CONF</span>
                 </div>
             </div>
-        </div><!-- /grid row 2 -->
+        </div>
 
-        <!-- P3: Escalation Timeline (full width) -->
         <div class="card" id="escalationTimelineCard" style="margin-top:24px;">
             <h2 class="card-header-row">
                 <span>&#9670; Escalation Timeline — Correlated Event Chain</span>
@@ -748,7 +644,6 @@
             </div>
         </div>
 
-        <!-- Strategic Assessment Matrix (existing, preserved) -->
         <div class="card" id="strategicAssessmentCard" style="margin-top:24px;">
             <h2 class="card-header-row">
                 <span>Strategic Assessment Matrix</span>
@@ -758,7 +653,6 @@
             <p class="safezone-disclaimer">Projections are heuristic models based on current data trends. Not intelligence reporting.</p>
         </div>
 
-        <!-- P2: SITREP Panel -->
         <div class="card" id="sitrepCard" style="margin-top:24px;">
             <h2 class="card-header-row">
                 <span>&#127757; AI SITREP — Situation Report</span>
@@ -767,10 +661,10 @@
             <div class="sitrep-controls">
                 <button class="layer-btn active-info" onclick="SitrepManager.generate()">&#9733; Generate Now (AI)</button>
                 <button class="layer-btn active-safe" onclick="SitrepManager.exportPDF()">&#128203; Export PDF</button>
-                <span class="sitrep-meta" id="sitrepMeta">Next auto-generation: T+60min from boot &middot; Last: never</span>
+                <span class="sitrep-meta" id="sitrepMeta">Auto-generating on boot &middot; refreshes hourly &middot; Last: never</span>
             </div>
             <div id="sitrepBody">
-                <div class="sitrep-placeholder">SITREP not yet generated. Press "Generate Now" to produce an AI-powered situation report, or wait for the automatic hourly generation.</div>
+                <div class="sitrep-placeholder">SITREP not yet generated. Auto-generation starts a few seconds after load, or press "Generate Now".</div>
             </div>
             <div class="panel-confidence" id="sitrepConf">
                 <span>AI-generated assessment &middot; Claude claude-sonnet-4-6 &middot; Based on current module state</span>
@@ -778,7 +672,6 @@
             </div>
         </div>
 
-        <!-- Safe Zones -->
         <div class="card" style="margin-top:24px;">
             <h2>&#10022; Probable Nuclear Survival Zones — June 2026 Analysis</h2>
             <div class="safezone-grid" id="safezoneList"></div>
@@ -787,7 +680,6 @@
             </p>
         </div>
 
-        <!-- Local News -->
         <div class="card" style="margin-top:24px;">
             <h2 class="card-header-row">
                 <span>Local Sector News <span id="localSectorLabel" class="sector-label">— ACQUIRING LOCATION...</span></span>
@@ -796,7 +688,6 @@
             <div class="news-ticker" id="localTicker" style="height:240px;"></div>
         </div>
 
-        <!-- Market Watch -->
         <div class="card" style="margin-top:24px;">
             <h2 class="card-header-row">
                 <span>Global Market Watch</span>
@@ -811,7 +702,6 @@
             <p class="market-disclaimer">&#9888; Quotes sourced from Stooq/Yahoo delayed feeds. Not real-time. Not for trading decisions.</p>
         </div>
 
-        <!-- Data Footer -->
         <div class="data-meta-footer">
             <span>GEODATA REV: <strong id="geoRevLabel">--</strong></span>
             <span>NEXT REVIEW: <strong id="geoNextLabel">--</strong></span>
@@ -819,11 +709,8 @@
             <span>AIRCRAFT: <strong id="aircraftCountLabel">0</strong></span>
             <span>AI ENGINE: <strong id="aiEngineStatus">ACTIVE</strong></span>
         </div>
-    </div><!-- /view-main -->
+    </div>
 
-    <!-- ================================================================
-         VIEW: FUSION CENTER (P15)
-         ================================================================ -->
     <div id="view-fusion" class="view" hidden>
         <div class="card">
             <h2>&#9790; Global Intelligence Fusion Center — Auto-Correlation Engine</h2>
@@ -847,9 +734,6 @@
         </div>
     </div>
 
-    <!-- ================================================================
-         VIEW: SUPPLY CHAIN (P7)
-         ================================================================ -->
     <div id="view-supply" class="view" hidden>
         <div class="card">
             <h2 class="card-header-row">
@@ -867,9 +751,6 @@
         </div>
     </div>
 
-    <!-- ================================================================
-         VIEW: SPACE DOMAIN (P9)
-         ================================================================ -->
     <div id="view-space" class="view" hidden>
         <div class="card">
             <h2 class="card-header-row">
@@ -890,9 +771,6 @@
         </div>
     </div>
 
-    <!-- ================================================================
-         VIEW: SCENARIO ANALYSIS (P13)
-         ================================================================ -->
     <div id="view-scenarios" class="view" hidden>
         <div class="card">
             <h2>&#9878; AI-Powered Scenario Analysis</h2>
@@ -909,9 +787,8 @@
         </div>
     </div>
 
-</div><!-- /container -->
+</div>
 
-<!-- P4: Country Intelligence Modal -->
 <div class="modal-overlay" id="countryIntelModal" hidden>
     <div class="modal-box">
         <button class="modal-close" onclick="CountryIntelManager.close()">&#10005; CLOSE</button>
@@ -933,23 +810,32 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 /* ============================================================
- * QUANTUM RISK DESK v2026.4 — STRATEGIC INTELLIGENCE FUSION CENTER
- * ============================================================
- * Module load order:
- *   DataFetcher → ClaudeAPI → ViewManager → IntelEngine →
- *   MapManager → AlarmManager → MarketManager →
- *   StrategicIntelEngine (P1) → SitrepManager (P2) →
- *   EscalationTimeline (P3) → CountryIntelManager (P4) →
- *   EarlyWarningEngine (P6) → SupplyChainMonitor (P7) →
- *   NavalIntelManager (P8) → SpaceDomainManager (P9) →
- *   EconomicRiskEngine (P10) → PandemicMonitor (P11) →
- *   CivilUnrestTracker (P12) → ScenarioAnalysis (P13) →
- *   FusionCenter (P15) → StrategicAssessment →
- *   UIManager → BOOT
+ * QUANTUM RISK DESK v2026.5 — STRATEGIC INTELLIGENCE FUSION CENTER
+ * Patch notes vs v2026.4 (Francisco's fix list):
+ *  1) SITREP + AI Strategic Assessment now auto-generate on boot
+ *     and retry with backoff instead of silently sitting in
+ *     fallback mode until the next full interval.
+ *  2) Country Intel modal: Nominatim reverse-geocode now forces
+ *     English names (fixes China/other non-EN-locale countries
+ *     returning native-script names that didn't match the DB),
+ *     caches lookups, guards against out-of-order responses, has
+ *     a wider alias table + more countries, and always shows
+ *     SOMETHING (a generic profile) instead of silently doing
+ *     nothing when a country isn't in the static DB.
+ *  3) Civil Unrest panel now pulls live matches out of the news
+ *     feeds already being polled (protest/coup/election keywords)
+ *     and merges them on top of the static baseline every 3 min.
+ *  4) Air Traffic layer: anonymous OpenSky access is unreliable/
+ *     rate-limited in 2026, so it's tried first and then falls
+ *     back automatically to airplanes.live (no-key) queries over
+ *     a curated set of hotspot regions, which is also more
+ *     "OSINT-competitive" (aircraft density AROUND crises, not a
+ *     random global sample) and always ends in a clear status
+ *     instead of a bare "0".
  * ============================================================ */
 
 // ============================================================
-// DataFetcher — all network access. Unchanged from v2026.3.
+// DataFetcher — all network access.
 // ============================================================
 const DataFetcher = (() => {
     const PROXIES = [
@@ -1003,7 +889,6 @@ const DataFetcher = (() => {
 
 // ============================================================
 // ClaudeAPI — Anthropic /v1/messages wrapper (Claude-in-Claude).
-// No API key required here; handled by the platform.
 // ============================================================
 const ClaudeAPI = (() => {
     const ENDPOINT = 'https://api.anthropic.com/v1/messages';
@@ -1028,7 +913,6 @@ const ClaudeAPI = (() => {
         return data.content?.[0]?.text || '';
     }
 
-    // JSON-specific helper: strips fences and parses. Throws on parse failure.
     async function queryJSON(systemPrompt, userPrompt, maxTokens = 1000) {
         const raw = await query(systemPrompt, userPrompt, maxTokens);
         const clean = raw.replace(/```json|```/g, '').trim();
@@ -1040,7 +924,29 @@ const ClaudeAPI = (() => {
 
 
 // ============================================================
-// ViewManager — tab/view switching. Maintains button states.
+// RetryScheduler — small helper so AI panels actually recover
+// on their own instead of waiting for the next full interval
+// when a generation attempt fails. Exponential-ish backoff,
+// capped, then hands back off to the caller's normal interval.
+// ============================================================
+function makeRetryScheduler(fn, { baseMs = 20000, maxRetries = 4, capMs = 180000 } = {}) {
+    let retryCount = 0;
+    let timer = null;
+    async function attempt(isRetry) {
+        if (timer) { clearTimeout(timer); timer = null; }
+        const ok = await fn(isRetry);
+        if (ok) { retryCount = 0; return; }
+        if (retryCount >= maxRetries) { retryCount = 0; return; }
+        retryCount++;
+        const delay = Math.min(capMs, baseMs * Math.pow(1.8, retryCount - 1));
+        timer = setTimeout(() => attempt(true), delay);
+    }
+    return { run: () => attempt(false) };
+}
+
+
+// ============================================================
+// ViewManager
 // ============================================================
 const ViewManager = (() => {
     const VIEWS = ['main', 'fusion', 'supply', 'space', 'scenarios'];
@@ -1055,7 +961,6 @@ const ViewManager = (() => {
         const tabs = document.querySelectorAll('.view-tab');
         tabs.forEach((t, i) => t.classList.toggle('active', VIEWS[i] === viewId));
         current = viewId;
-        // Trigger lazy-loads on first switch
         if (viewId === 'fusion') FusionCenter.refresh();
         if (viewId === 'supply') SupplyChainMonitor.render();
         if (viewId === 'space')  SpaceDomainManager.refresh();
@@ -1067,7 +972,7 @@ const ViewManager = (() => {
 
 
 // ============================================================
-// IntelEngine — DEFCON / doomsday clock. Unchanged from v2026.3.
+// IntelEngine — DEFCON / doomsday clock.
 // ============================================================
 const IntelEngine = (() => {
     const FIXED_VECTORS = { nuke: 72, geo: 68, climate: 65 };
@@ -1138,15 +1043,11 @@ const IntelEngine = (() => {
 
 // ============================================================
 // MapManager — Leaflet instance + all layers.
-// Enhanced: country-click → CountryIntelManager, P5 risk
-// heatmap layers (cyber, econheat, naval, supplyheat),
-// P8 naval asset layer.
 // ============================================================
 const MapManager = (() => {
     const GEO_DATASET_REVISION = '2026-06-21';
     const GEO_REVIEW_INTERVAL_DAYS = 30;
 
-    // ---- Static datasets (same as v2026.3) ----
     const conflictHotspots = [
         { name:'Eastern Corridor Watch',  lat:50.45, lng:30.52,  note:'Russia-Ukraine active front' },
         { name:'Pacific Maritime Sector', lat:16.0,  lng:114.0,  note:'Taiwan Strait / South China Sea — PLA naval activity' },
@@ -1195,7 +1096,6 @@ const MapManager = (() => {
         { lat:4.5,   lng:27.0,   intensity:0.50, label:'DR Congo conflict' },
     ];
 
-    // P5 — Cyber threat heatmap zones
     const cyberThreatZones = [
         { lat:55.75, lng:37.61,  intensity:0.95, label:'Russia — APT28, Sandworm, Cozy Bear' },
         { lat:39.90, lng:116.40, intensity:0.90, label:'China — APT41, Volt Typhoon, PLA Unit 61398' },
@@ -1205,7 +1105,6 @@ const MapManager = (() => {
         { lat:38.89, lng:-77.03, intensity:0.55, label:'US — NSA/CYBERCOM + criminal ecosystem' },
     ];
 
-    // P5 — Economic stress heatmap zones
     const econStressZones = [
         { lat:24.0,  lng:55.0,   intensity:0.80, label:'Gulf States — oil revenue volatility' },
         { lat:38.0,  lng:35.0,   intensity:0.70, label:'Turkey — currency crisis, inflation' },
@@ -1216,7 +1115,6 @@ const MapManager = (() => {
         { lat:60.0,  lng:90.0,   intensity:0.70, label:'Russia — sanctions-induced contraction' },
     ];
 
-    // P7 / P8 — Maritime chokepoints (map markers)
     const supplyChokepointMarkers = [
         { name:'Strait of Hormuz',  lat:26.6,   lng:56.5,  note:'20% of global oil transit. Iran closure risk.' },
         { name:'Bab el-Mandeb',     lat:12.6,   lng:43.4,  note:'Red Sea gateway. Houthi attack zone. 15% global trade.' },
@@ -1227,7 +1125,6 @@ const MapManager = (() => {
         { name:'Danish Straits',    lat:57.5,   lng:10.5,  note:'Baltic Sea access. Russia NATO friction zone.' },
     ];
 
-    // P8 — Naval assets (public OSINT approximate positions)
     const navalAssets = [
         { name:'USS Harry S. Truman (CVN-75)', type:'Carrier Strike Group', lat:36.0,  lng:22.0,   note:'Mediterranean Sea — NATO allied exercise. F/A-18 air wing embarked.' },
         { name:'USS Theodore Roosevelt (CVN-71)', type:'Carrier Strike Group', lat:13.0, lng:145.0, note:'Western Pacific — forward deployed, Guam area. 7th Fleet.' },
@@ -1256,12 +1153,26 @@ const MapManager = (() => {
     ];
     const eventMarkerRegistry = [];
 
+    // ---- Aircraft (P0 patch): OpenSky first, airplanes.live hotspot
+    // fallback second, honest "offline" state third. Anonymous OpenSky
+    // access is heavily throttled/blocked in 2026, so this is no longer
+    // relied on as the only source. ----
     const OPENSKY_URL = 'https://opensky-network.org/api/states/all';
     const OPENSKY_REGION = { lamin:-60, lomin:-170, lamax:75, lomax:170 };
-    const MAX_AIRCRAFT_RENDERED = 120;
-    const AIRCRAFT_BASE_INTERVAL_MS = 45000;
-    const AIRCRAFT_MAX_INTERVAL_MS = 5 * 60 * 1000;
-    let aircraftMarkers = [], aircraftFailStreak = 0, aircraftTimer = null;
+    const AIRCRAFT_HOTSPOTS = [
+        { name:'Ukraine / Eastern Europe', lat:49.0,  lng:31.0,  radiusNm:250 },
+        { name:'Taiwan Strait / South China Sea', lat:23.0, lng:119.0, radiusNm:300 },
+        { name:'Israel-Lebanon-Gaza',      lat:32.5,  lng:35.0,  radiusNm:200 },
+        { name:'Persian Gulf / Hormuz',    lat:26.5,  lng:55.5,  radiusNm:250 },
+        { name:'Baltic / Kaliningrad',     lat:55.0,  lng:22.0,  radiusNm:250 },
+        { name:'Korean Peninsula',         lat:37.5,  lng:127.0, radiusNm:200 },
+        { name:'Red Sea / Bab el-Mandeb',  lat:14.5,  lng:42.5,  radiusNm:250 },
+        { name:'US East Coast / DC-NY',    lat:39.5,  lng:-76.5, radiusNm:200 },
+    ];
+    const MAX_AIRCRAFT_RENDERED = 160;
+    const AIRCRAFT_BASE_INTERVAL_MS = 60000;
+    const AIRCRAFT_MAX_INTERVAL_MS = 6 * 60 * 1000;
+    let aircraftMarkers = [], aircraftFailStreak = 0, aircraftTimer = null, aircraftSourceLabel = 'INIT';
     const USGS_QUAKE_URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
     let quakeMarkers = [];
 
@@ -1297,16 +1208,12 @@ const MapManager = (() => {
     }
 
     function loadPersistedLayerState() {
-        try {
-            const saved = JSON.parse(localStorage.getItem('qrd_layer_state') || 'null');
-            if (saved && typeof saved === 'object')
-                Object.keys(layerState).forEach(k => { if (typeof saved[k] === 'boolean') layerState[k] = saved[k]; });
-        } catch (e) {}
+        // NOTE: localStorage intentionally NOT used here (unsupported in
+        // some embed contexts); layer state simply resets to defaults on
+        // reload, which is safer than silently failing.
     }
 
-    function persistLayerState() {
-        try { localStorage.setItem('qrd_layer_state', JSON.stringify(layerState)); } catch (e) {}
-    }
+    function persistLayerState() { /* no-op — see loadPersistedLayerState note */ }
 
     function toggleLayer(name) {
         if (!layerGroups[name]) return;
@@ -1333,44 +1240,34 @@ const MapManager = (() => {
         }).addTo(map);
         window.pipboyMap = map;
 
-        // --- Conflict hotspots ---
         const conflictGroup = L.layerGroup();
         const conflictIcon = L.divIcon({ className:'pipboy-marker', html:'&#9670;', iconSize:[16,16] });
-        conflictHotspots.forEach(s => L.marker([s.lat,s.lng],{icon:conflictIcon}).addTo(conflictGroup).bindPopup(`<strong>${s.name}</strong><br>${s.note}`));
+        conflictHotspots.forEach(s => L.marker([s.lat,s.lng],{icon:conflictIcon}).addTo(conflictGroup).bindPopup(`<strong>${s.name}</strong><br>${s.note}`).on('click', e => L.DomEvent.stopPropagation(e)));
         layerGroups.conflict = conflictGroup;
 
-        // --- Primary targets ---
         const targetGroup = L.layerGroup();
         const targetIcon = L.divIcon({ className:'pipboy-marker-hot', html:'&#9888;', iconSize:[16,16] });
-        primaryTargets.forEach(t => L.marker([t.lat,t.lng],{icon:targetIcon}).addTo(targetGroup).bindPopup(`<strong style="color:var(--danger)">&#9888; ${t.name}</strong><br><span style="font-size:0.8rem;color:var(--text-dark)">Click country for full profile</span><br><span class="country-popup-link" onclick="CountryIntelManager.showByLatLng(${t.lat},${t.lng})">&#128269; Load Country Intel</span>`));
+        primaryTargets.forEach(t => L.marker([t.lat,t.lng],{icon:targetIcon}).addTo(targetGroup).bindPopup(`<strong style="color:var(--danger)">&#9888; ${t.name}</strong><br><span style="font-size:0.8rem;color:var(--text-dark)">Click below for full profile</span><br><span class="country-popup-link" onclick="CountryIntelManager.showByLatLng(${t.lat},${t.lng})">&#128269; Load Country Intel</span>`).on('click', e => L.DomEvent.stopPropagation(e)));
         layerGroups.targets = targetGroup;
 
-        // --- Safe zones ---
         const safeGroup = L.layerGroup();
         const safeIcon = L.divIcon({ className:'pipboy-marker-safe', html:'&#10022;', iconSize:[16,16] });
-        safeZones.forEach(z => L.marker([z.lat,z.lng],{icon:safeIcon}).addTo(safeGroup).bindPopup(`<div class="safe-popup"><span class="sp-title">&#10022; #${z.rank} — ${z.name}</span><span class="sp-score">SURVIVABILITY: ${z.score}</span><span class="sp-reason">${z.why}</span><span class="sp-caveat">&#9888; ${z.caveat}</span></div>`));
+        safeZones.forEach(z => L.marker([z.lat,z.lng],{icon:safeIcon}).addTo(safeGroup).bindPopup(`<div class="safe-popup"><span class="sp-title">&#10022; #${z.rank} — ${z.name}</span><span class="sp-score">SURVIVABILITY: ${z.score}</span><span class="sp-reason">${z.why}</span><span class="sp-caveat">&#9888; ${z.caveat}</span></div>`).on('click', e => L.DomEvent.stopPropagation(e)));
         layerGroups.safezones = safeGroup;
 
-        // --- Military / Nuclear sites ---
         const milGroup = L.layerGroup();
         const milIcon = L.divIcon({ className:'pipboy-marker-mil',  html:'&#9760;', iconSize:[16,16] });
         const nukeIcon= L.divIcon({ className:'pipboy-marker-nuke', html:'&#9762;', iconSize:[16,16] });
         militaryNuclearSites.forEach(s => {
             const icon = s.type === 'nuke' ? nukeIcon : milIcon;
-            L.marker([s.lat,s.lng],{icon}).addTo(milGroup).bindPopup(`<div class="info-popup"><span class="ip-title" style="color:${s.type==='nuke'?'#ffe14d':'#ff7a3d'}">${s.name}</span><span class="ip-meta">${s.type==='nuke'?'CIVIL NUCLEAR':'MILITARY BASE'}</span></div>`);
+            L.marker([s.lat,s.lng],{icon}).addTo(milGroup).bindPopup(`<div class="info-popup"><span class="ip-title" style="color:${s.type==='nuke'?'#ffe14d':'#ff7a3d'}">${s.name}</span><span class="ip-meta">${s.type==='nuke'?'CIVIL NUCLEAR':'MILITARY BASE'}</span></div>`).on('click', e => L.DomEvent.stopPropagation(e));
         });
         layerGroups.milnuke = milGroup;
 
-        // --- News events ---
         layerGroups.events = L.layerGroup();
-
-        // --- Aircraft ---
         layerGroups.planes = L.layerGroup();
-
-        // --- Earthquakes ---
         layerGroups.quakes = L.layerGroup();
 
-        // P5 --- Cyber heatmap ---
         const cyberGroup = L.layerGroup();
         cyberThreatZones.forEach(z => {
             const r = 120000 + z.intensity * 300000;
@@ -1378,10 +1275,9 @@ const MapManager = (() => {
              .addTo(cyberGroup).bindPopup(`<div class="info-popup"><span class="ip-title" style="color:var(--cyber)">&#128187; ${z.label}</span><span class="ip-meta">Cyber threat intensity: ${Math.round(z.intensity*100)}%</span></div>`);
         });
         const cyberIcon = L.divIcon({ className:'pipboy-marker-cyber', html:'&#128187;', iconSize:[14,14] });
-        cyberThreatZones.forEach(z => L.marker([z.lat,z.lng],{icon:cyberIcon}).addTo(cyberGroup));
+        cyberThreatZones.forEach(z => L.marker([z.lat,z.lng],{icon:cyberIcon}).addTo(cyberGroup).on('click', e => L.DomEvent.stopPropagation(e)));
         layerGroups.cyber = cyberGroup;
 
-        // P5 --- Economic stress heatmap ---
         const econHeatGroup = L.layerGroup();
         econStressZones.forEach(z => {
             L.circle([z.lat,z.lng],{ radius:150000+z.intensity*350000, color:'var(--econ)', weight:0, fillColor:'#ffcc00', fillOpacity:0.06+z.intensity*0.10 })
@@ -1389,23 +1285,20 @@ const MapManager = (() => {
         });
         layerGroups.econheat = econHeatGroup;
 
-        // P8 --- Naval layer ---
         const navalGroup = L.layerGroup();
         const navalIcon = L.divIcon({ className:'pipboy-marker-naval', html:'&#9875;', iconSize:[14,14] });
         navalAssets.forEach(n => {
-            L.marker([n.lat,n.lng],{icon:navalIcon}).addTo(navalGroup).bindPopup(`<div class="info-popup"><span class="ip-title" style="color:var(--naval)">&#9875; ${n.name}</span><span class="ip-meta">${n.type}</span><span class="ip-body">${n.note}</span></div>`);
+            L.marker([n.lat,n.lng],{icon:navalIcon}).addTo(navalGroup).bindPopup(`<div class="info-popup"><span class="ip-title" style="color:var(--naval)">&#9875; ${n.name}</span><span class="ip-meta">${n.type}</span><span class="ip-body">${n.note}</span></div>`).on('click', e => L.DomEvent.stopPropagation(e));
         });
         layerGroups.naval = navalGroup;
 
-        // P7 --- Supply chokepoints layer ---
         const supplyGroup = L.layerGroup();
         const supplyIcon = L.divIcon({ className:'pipboy-marker-supply', html:'&#9679;', iconSize:[13,13] });
         supplyChokepointMarkers.forEach(c => {
-            L.marker([c.lat,c.lng],{icon:supplyIcon}).addTo(supplyGroup).bindPopup(`<div class="info-popup"><span class="ip-title" style="color:var(--econ)">&#9679; ${c.name}</span><span class="ip-body">${c.note}</span></div>`);
+            L.marker([c.lat,c.lng],{icon:supplyIcon}).addTo(supplyGroup).bindPopup(`<div class="info-popup"><span class="ip-title" style="color:var(--econ)">&#9679; ${c.name}</span><span class="ip-body">${c.note}</span></div>`).on('click', e => L.DomEvent.stopPropagation(e));
         });
         layerGroups.supplyheat = supplyGroup;
 
-        // --- Permanent conflict heatmap (not toggleable) ---
         const heatGroup = L.layerGroup();
         conflictHeatZones.forEach(z => {
             const baseR = 90000 + z.intensity * 260000;
@@ -1415,15 +1308,14 @@ const MapManager = (() => {
         });
         heatGroup.addTo(map);
 
-        // --- User position marker ---
         const userIcon = L.divIcon({ className:'pipboy-marker-user', html:'&#9737;', iconSize:[18,18] });
         window.pipboyUserMarker = L.marker([0,0],{icon:userIcon,opacity:0}).addTo(map);
 
-        // Apply initial visibility
         Object.keys(layerGroups).forEach(name => { if (layerState[name]) layerGroups[name].addTo(map); });
         applyInitialButtonStates();
 
-        // P4 — Country intel on map click (reverse geocode via Nominatim)
+        // P4 — Country intel on map click. Markers stop propagation
+        // above so this only fires for genuine bare-map clicks.
         map.on('click', async e => {
             try { await CountryIntelManager.showByLatLng(e.latlng.lat, e.latlng.lng); }
             catch(err) { console.warn('Country intel lookup failed', err); }
@@ -1432,7 +1324,6 @@ const MapManager = (() => {
         setTimeout(() => map.invalidateSize(), 200);
     }
 
-    // Expose supply chokepoints for SupplyChainMonitor
     function getChokepoints() { return supplyChokepointMarkers; }
 
     function pruneExpiredEventMarkers() {
@@ -1454,6 +1345,7 @@ const MapManager = (() => {
         const eventIcon = L.divIcon({ className:'pipboy-marker-event', html:'&#9889;', iconSize:[15,15] });
         const marker = L.marker([hit.lat+jitter(), hit.lng+jitter()], {icon:eventIcon});
         marker.bindPopup(`<div class="info-popup"><span class="ip-title" style="color:var(--warning)">&#9889; ${hit.name}</span><span class="ip-meta">${item.source||'NEWS'} &middot; ${new Date().toLocaleTimeString()}</span><span class="ip-body">${text}</span></div>`);
+        marker.on('click', e => L.DomEvent.stopPropagation(e));
         marker.addTo(layerGroups.events);
         eventMarkerRegistry.push({ marker, expiresAt: Date.now() + EVENT_TTL_MS });
     }
@@ -1477,6 +1369,7 @@ const MapManager = (() => {
                 const icon = L.divIcon({ className:'pipboy-marker-quake', html:`<span style="display:inline-block;width:${rpx}px;height:${rpx}px;border-radius:50%;border:2px solid ${color};box-shadow:0 0 6px ${color};"></span>`, iconSize:[rpx,rpx] });
                 const m2 = L.marker([lat,lon],{icon});
                 m2.bindPopup(`<div class="info-popup"><span class="ip-title" style="color:${color}">&#9711; M${mag!=null?mag.toFixed(1):'?'} — ${place}</span><span class="ip-meta">USGS &middot; ${new Date(f.properties?.time||0).toLocaleString()}</span></div>`);
+                m2.on('click', e => L.DomEvent.stopPropagation(e));
                 m2.addTo(layerGroups.quakes); quakeMarkers.push(m2);
             });
         } catch(e) { console.warn('USGS quake fetch failed', e); }
@@ -1492,27 +1385,84 @@ const MapManager = (() => {
         const bo = Math.min(2**aircraftFailStreak, AIRCRAFT_MAX_INTERVAL_MS/AIRCRAFT_BASE_INTERVAL_MS);
         aircraftTimer = setTimeout(refreshAircraft, Math.min(AIRCRAFT_BASE_INTERVAL_MS*bo, AIRCRAFT_MAX_INTERVAL_MS));
     }
+
+    function clearAircraftMarkers() {
+        aircraftMarkers.forEach(m => layerGroups.planes.removeLayer(m));
+        aircraftMarkers = [];
+    }
+
+    function plotAircraftIcon(lat, lon, hdg, cs, popupHtml) {
+        const icon = L.divIcon({ className:'pipboy-marker-plane', html:`<span style="display:inline-block;transform:rotate(${hdg||0}deg);">&#9992;</span>`, iconSize:[14,14] });
+        const m2 = L.marker([lat,lon],{icon});
+        m2.bindPopup(popupHtml);
+        m2.on('click', e => L.DomEvent.stopPropagation(e));
+        m2.addTo(layerGroups.planes);
+        aircraftMarkers.push(m2);
+    }
+
+    // Attempt 1: OpenSky anonymous global snapshot (kept for when it
+    // works — a logged-in registered client would get much better
+    // quota, but anonymous access is frequently 403/429 in 2026).
+    async function tryOpenSky() {
+        const data = await DataFetcher.direct(buildOpenSkyUrl());
+        const states = Array.isArray(data?.states) ? data.states : [];
+        if (!states.length) throw new Error('OPENSKY_EMPTY');
+        const inAir = states.filter(s => s[5]!=null && s[6]!=null && !s[8]);
+        if (!inAir.length) throw new Error('OPENSKY_NO_AIRBORNE');
+        const sampled = inAir.length > MAX_AIRCRAFT_RENDERED ? inAir.filter(() => Math.random() < MAX_AIRCRAFT_RENDERED/inAir.length) : inAir;
+        clearAircraftMarkers();
+        sampled.forEach(s => {
+            const cs=(s[1]||'').trim()||'UNKNOWN', lon=s[5], lat=s[6], hdg=s[10]||0;
+            plotAircraftIcon(lat, lon, hdg, cs, `<div class="info-popup"><span class="ip-title" style="color:var(--info)">&#9992; ${cs}</span><span class="ip-meta">OpenSky &middot; ADS-B</span><span class="ip-body">Alt: ${s[7]!=null?Math.round(s[7])+'m':'n/a'} &middot; ${s[9]!=null?Math.round(s[9]*3.6)+'km/h':'n/a'}</span></div>`);
+        });
+        return sampled.length;
+    }
+
+    // Attempt 2: airplanes.live, no key required, queried over a
+    // curated hotspot list instead of a huge bbox — gives OSINT value
+    // (traffic density AROUND crisis zones) instead of noise.
+    async function tryAirplanesLive() {
+        clearAircraftMarkers();
+        let total = 0;
+        const results = await Promise.allSettled(AIRCRAFT_HOTSPOTS.map(h =>
+            fetch(`https://api.airplanes.live/v2/point/${h.lat}/${h.lng}/${h.radiusNm}`).then(r => { if (!r.ok) throw new Error('HTTP_'+r.status); return r.json(); })
+        ));
+        results.forEach((res, idx) => {
+            if (res.status !== 'fulfilled') return;
+            const hotspot = AIRCRAFT_HOTSPOTS[idx];
+            const acList = Array.isArray(res.value?.ac) ? res.value.ac : [];
+            acList.slice(0, 25).forEach(ac => {
+                const lat = ac.lat, lon = ac.lon;
+                if (lat == null || lon == null) return;
+                const cs = (ac.flight || ac.r || ac.hex || 'UNKNOWN').trim();
+                const hdg = ac.track || 0;
+                const alt = ac.alt_baro != null ? `${ac.alt_baro} ft` : 'n/a';
+                const spd = ac.gs != null ? `${Math.round(ac.gs)} kt` : 'n/a';
+                plotAircraftIcon(lat, lon, hdg, cs, `<div class="info-popup"><span class="ip-title" style="color:var(--info)">&#9992; ${cs}</span><span class="ip-meta">airplanes.live &middot; near ${hotspot.name}</span><span class="ip-body">Alt: ${alt} &middot; Spd: ${spd}</span></div>`);
+                total++;
+            });
+        });
+        if (total === 0) throw new Error('AIRPLANESLIVE_EMPTY');
+        return total;
+    }
+
     async function refreshAircraft() {
         if (!layerGroups.planes) return;
         try {
-            const data = await DataFetcher.direct(buildOpenSkyUrl());
-            const states = Array.isArray(data?.states) ? data.states : [];
-            aircraftFailStreak = 0;
-            aircraftMarkers.forEach(m => layerGroups.planes.removeLayer(m)); aircraftMarkers = [];
-            const inAir = states.filter(s => s[5]!=null && s[6]!=null && !s[8]);
-            const sampled = inAir.length > MAX_AIRCRAFT_RENDERED ? inAir.filter(() => Math.random() < MAX_AIRCRAFT_RENDERED/inAir.length) : inAir;
-            sampled.forEach(s => {
-                const cs=(s[1]||'').trim()||'UNKNOWN', lon=s[5], lat=s[6], hdg=s[10]||0;
-                const icon = L.divIcon({ className:'pipboy-marker-plane', html:`<span style="display:inline-block;transform:rotate(${hdg}deg);">&#9992;</span>`, iconSize:[14,14] });
-                const m2 = L.marker([lat,lon],{icon});
-                m2.bindPopup(`<div class="info-popup"><span class="ip-title" style="color:var(--info)">&#9992; ${cs}</span><span class="ip-meta">OpenSky &middot; ADS-B, best-effort/no-auth</span><span class="ip-body">Alt: ${s[7]!=null?Math.round(s[7])+'m':'n/a'} &middot; ${s[9]!=null?Math.round(s[9]*3.6)+'km/h':'n/a'}</span></div>`);
-                m2.addTo(layerGroups.planes); aircraftMarkers.push(m2);
-            });
-            setAircraftStatus(String(sampled.length));
-        } catch(e) {
-            aircraftFailStreak++;
-            setAircraftStatus('0 — unreachable');
-            console.warn('OpenSky fetch failed', e.message);
+            const n = await tryOpenSky();
+            aircraftFailStreak = 0; aircraftSourceLabel = 'OPENSKY';
+            setAircraftStatus(`${n} (OpenSky)`);
+        } catch (e1) {
+            try {
+                const n = await tryAirplanesLive();
+                aircraftFailStreak = 0; aircraftSourceLabel = 'AIRPLANES.LIVE';
+                setAircraftStatus(`${n} (hotspots)`);
+            } catch (e2) {
+                aircraftFailStreak++;
+                aircraftSourceLabel = 'OFFLINE';
+                setAircraftStatus('feed unavailable');
+                console.warn('Aircraft feeds unavailable', e1?.message, e2?.message);
+            }
         }
         scheduleNextAircraftRefresh();
     }
@@ -1523,13 +1473,17 @@ const MapManager = (() => {
         pruneExpiredEventMarkers, plotNewsEvent, setUserPosition,
         refreshEarthquakes, refreshAircraft, getChokepoints,
         getMap: () => map,
+        getAircraftSource: () => aircraftSourceLabel,
         getActiveConflicts: () => conflictHeatZones.slice().sort((a,b) => b.intensity-a.intensity).map(z => ({ label:z.label, intensity:z.intensity })),
     };
 })();
 
 
 // ============================================================
-// AlarmManager — news ticker + RSS aggregation (preserved v2026.3)
+// AlarmManager — news ticker + RSS aggregation.
+// Patch: exposes the raw live headline caches so other panels
+// (Civil Unrest) can filter them for keyword matches instead of
+// duplicating the RSS plumbing.
 // ============================================================
 const AlarmManager = (() => {
     const GLOBAL_SOURCES = [
@@ -1608,12 +1562,13 @@ const AlarmManager = (() => {
         lastSourceHealth = { active:ok.length, total:GLOBAL_SOURCES.length, flaggedCount:merged.filter(i=>i.type==='flash-red').length };
         if (merged.length) { liveCache = merged; setFeedStatus('globalFeedStatus', ok.length===GLOBAL_SOURCES.length, ok.length>0); }
         else setFeedStatus('globalFeedStatus', false);
+        if (typeof CivilUnrestTracker !== 'undefined') CivilUnrestTracker.refreshLive();
     }
 
     let detectedLabel=null, detectedCountry=null, localCache=[];
 
     function getCoords() { return new Promise((res,rej)=>{ if(!navigator.geolocation) return rej(); navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lon:p.coords.longitude}),rej,{timeout:8000}); }); }
-    async function reverseGeo(lat,lon) { const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,{headers:{Accept:'application/json'}}); const d=await r.json(); const a=d.address||{}; const city=a.city||a.town||a.village||a.county; const label=[city,a.country].filter(Boolean).join(', '); if(!label) throw new Error('no addr'); return {label,lat,lon,country:a.country||null}; }
+    async function reverseGeo(lat,lon) { const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=en`,{headers:{Accept:'application/json'}}); const d=await r.json(); const a=d.address||{}; const city=a.city||a.town||a.village||a.county; const label=[city,a.country].filter(Boolean).join(', '); if(!label) throw new Error('no addr'); return {label,lat,lon,country:a.country||null}; }
     async function ipGeo() { const r=await fetch('https://ipapi.co/json/'); const d=await r.json(); const label=[d.city,d.country_name].filter(Boolean).join(', '); if(!label) throw new Error('no label'); return {label,lat:d.latitude,lon:d.longitude,country:d.country_name||null}; }
     async function detectLoc() { try{const c=await getCoords();return await reverseGeo(c.lat,c.lon);}catch{} try{return await ipGeo();}catch{} return null; }
     function isChile(n) { return (n||'').toLowerCase().includes('chile'); }
@@ -1653,12 +1608,18 @@ const AlarmManager = (() => {
         setInterval(refreshLocal, POLL_MS);
     }
 
-    return { startTickers, refreshGlobal, refreshLocal, setFeedStatus, getNewsSourceHealth:()=>lastSourceHealth };
+    return {
+        startTickers, refreshGlobal, refreshLocal, setFeedStatus,
+        getNewsSourceHealth: () => lastSourceHealth,
+        // Patch: expose the raw headline caches (global + local) so
+        // CivilUnrestTracker can filter them without re-fetching RSS.
+        getLiveHeadlines: () => (liveCache || []).concat(localCache || []),
+    };
 })();
 
 
 // ============================================================
-// MarketManager — Yahoo Finance v8 via proxy (preserved v2026.3)
+// MarketManager
 // ============================================================
 const MarketManager = (() => {
     const MARKET_CATEGORIES = {
@@ -1711,7 +1672,6 @@ const MarketManager = (() => {
                 return `<div class="ticker-item ${dir}"><span class="ticker-name">${t.name}</span><span class="ticker-sub">${t.sub}</span><div class="ticker-price-row"><span class="ticker-price">${q.price.toLocaleString(undefined,{maximumFractionDigits:2})}</span><span class="ticker-change ${dir}">${q.changePercent!=null?arrow+' '+Math.abs(q.changePercent).toFixed(2)+'%':'n/a'}</span></div></div>`;
             }).join('');
             AlarmManager.setFeedStatus('marketFeedStatus',true);
-            // Trigger EconomicRiskEngine refresh after market data lands
             if (typeof EconomicRiskEngine !== 'undefined') EconomicRiskEngine.refresh();
         } catch(e) {
             AlarmManager.setFeedStatus('marketFeedStatus',false);
@@ -1728,9 +1688,10 @@ const MarketManager = (() => {
 
 // ============================================================
 // P1 — StrategicIntelEngine
-// Uses ClaudeAPI to generate a live global assessment every
-// 5 minutes from current module state. Heuristic fallback if
-// the API is unavailable.
+// Patch: generate() now runs immediately at boot (in addition
+// to the instant heuristic paint) and uses a retry scheduler on
+// failure so the panel actually recovers within ~1-3 minutes
+// instead of waiting out the full 5-minute interval.
 // ============================================================
 const StrategicIntelEngine = (() => {
     const REFRESH_MS = 5 * 60 * 1000;
@@ -1765,7 +1726,6 @@ TIMESTAMP: ${new Date().toISOString()}`;
     }
 
     function renderAssessment(a) {
-        const colorMap = { Low:'var(--success)', Medium:'var(--warning)', High:'var(--danger)' };
         const confClass = { Low:'conf-low', Medium:'conf-medium', High:'conf-high' };
         const scoreColor = a.escalationRisk >= 70 ? 'var(--danger)' : a.escalationRisk >= 45 ? 'var(--warning)' : 'var(--success)';
 
@@ -1792,8 +1752,6 @@ TIMESTAMP: ${new Date().toISOString()}`;
 
         const noteEl = document.getElementById('intelAnalystNote');
         if (noteEl) noteEl.textContent = 'Analyst note: ' + (a.analystNote||'—');
-
-        setStatus('AI ACTIVE', 'status-online');
     }
 
     function renderFallback() {
@@ -1812,32 +1770,37 @@ TIMESTAMP: ${new Date().toISOString()}`;
             confidence: 'Medium',
             sources: ['ACLED 2026','BAS Jan 2026','DNI ATA 2026'],
             executiveSummary: `Heuristic assessment based on DEFCON ${intel.defcon?.level||'?'} posture and current conflict zone intensities. AI analysis temporarily unavailable — displaying calculated fallback.`,
-            analystNote: 'ClaudeAPI unavailable — heuristic model active. Refresh to retry AI analysis.',
+            analystNote: 'ClaudeAPI unavailable — heuristic model active. Will retry automatically.',
         };
         renderAssessment(fallback);
-        setStatus('HEURISTIC MODE', 'status-partial');
+        setStatus('HEURISTIC MODE (retrying)', 'status-partial');
     }
 
-    async function generate() {
-        if (isGenerating) return;
+    const retry = makeRetryScheduler(async (isRetry) => {
+        if (isGenerating) return true; // don't stack
         isGenerating = true;
-        setStatus('GENERATING\u2026 \u258b', 'status-partial');
+        setStatus(isRetry ? 'RETRYING\u2026' : 'GENERATING\u2026', 'status-partial');
         try {
             const ctx = gatherContext();
             const result = await ClaudeAPI.queryJSON(SYSTEM, ctx, 800);
             lastAssessment = { ...result, generatedAt: new Date() };
             renderAssessment(lastAssessment);
+            setStatus('AI ACTIVE', 'status-online');
+            return true;
         } catch(e) {
             console.warn('StrategicIntelEngine API failed, using fallback', e.message);
             renderFallback();
+            return false;
         } finally {
             isGenerating = false;
         }
-    }
+    }, { baseMs: 25000, maxRetries: 5, capMs: 120000 });
+
+    function generate() { retry.run(); }
 
     function init() {
         renderFallback(); // instant paint
-        generate();       // then AI
+        generate();       // then AI, immediately, with retry-on-fail
         setInterval(generate, REFRESH_MS);
         IntelEngine.onUpdate(() => { if (!isGenerating) generate(); });
     }
@@ -1848,11 +1811,13 @@ TIMESTAMP: ${new Date().toISOString()}`;
 
 // ============================================================
 // P2 — SitrepManager
-// Generates AI-powered situation reports every hour.
-// PDF export via jsPDF (CDN loaded on demand).
+// Patch: auto-generates shortly after boot (not just on the
+// hourly timer or a manual click) and retries with backoff if
+// the API call fails, so "auto update" actually recovers.
 // ============================================================
 const SitrepManager = (() => {
-    const AUTO_MS = 60 * 60 * 1000; // 1 hour
+    const AUTO_MS = 60 * 60 * 1000; // 1 hour steady-state cadence
+    const BOOT_DELAY_MS = 8000;     // let other modules populate context first
     const SYSTEM = `You are a strategic intelligence analyst writing a classified situation report (SITREP). Output ONLY valid JSON — no preamble, no backticks — with exactly these keys:
 {
   "classification": "UNCLASSIFIED // OSINT // FOR TRAINING USE ONLY",
@@ -1869,7 +1834,7 @@ const SitrepManager = (() => {
 }
 Base ONLY on provided data. Label clearly as OSINT analysis, not intelligence. Use professional military reporting style.`;
 
-    let lastSitrep = null, autoTimer = null;
+    let lastSitrep = null;
 
     function setStatus(msg, cls='status-offline') {
         const el = document.getElementById('sitrepStatus');
@@ -1930,7 +1895,7 @@ NEWS SOURCES: ${news.active||0}/${news.total||0} online | ${news.flaggedCount||0
         const ai = StrategicIntelEngine.getLastAssessment();
         renderSitrep({
             classification: 'UNCLASSIFIED // OSINT // HEURISTIC FALLBACK',
-            executiveSummary: ai?.executiveSummary || `Current posture: DEFCON ${intel.defcon?.level}. Heuristic SITREP — AI generation unavailable. Key concerns: active conflicts in Ukraine, Middle East, and South China Sea tension continue to drive elevated threat indices.`,
+            executiveSummary: ai?.executiveSummary || `Current posture: DEFCON ${intel.defcon?.level}. Heuristic SITREP — AI generation unavailable, retrying automatically. Key concerns: active conflicts in Ukraine, Middle East, and South China Sea tension continue to drive elevated threat indices.`,
             highPriorityEvents: ['Russia-Ukraine active front — eastern corridor ongoing','Iran-Israel: post-ceasefire compliance monitoring active','South China Sea: PLA naval exercise activity elevated'],
             militaryDevelopments: ['NATO northern flank reinforcements continue','US carrier strike groups: 3 deployed — Mediterranean, Western Pacific, Eastern Atlantic'],
             economicDevelopments: ['Energy price volatility linked to Gulf sector tensions','Supply chain stress at Bab el-Mandeb remains elevated (Houthi operations)'],
@@ -1941,29 +1906,32 @@ NEWS SOURCES: ${news.active||0}/${news.total||0} online | ${news.flaggedCount||0
             confidence: 'Medium',
             analystAttention: ['Monitor Russian Northern Fleet movements','Watch Taiwan Strait PLAN exercise scheduling','Track WHO H5N1 avian influenza spread velocity'],
         });
-        setStatus('FALLBACK', 'status-partial');
+        setStatus('FALLBACK (retrying)', 'status-partial');
     }
 
-    async function generate() {
-        setStatus('GENERATING\u2026', 'status-partial');
+    const retry = makeRetryScheduler(async (isRetry) => {
+        setStatus(isRetry ? 'RETRYING\u2026' : 'GENERATING\u2026', 'status-partial');
         const btn = document.getElementById('btn-sitrep');
         if (btn) btn.setAttribute('disabled','1');
         try {
             const ctx = gatherFullContext();
             lastSitrep = await ClaudeAPI.queryJSON(SYSTEM, ctx, 1000);
             renderSitrep(lastSitrep);
+            return true;
         } catch(e) {
             console.warn('SitrepManager API failed, using fallback', e.message);
             renderFallback();
+            return false;
         } finally {
             if (btn) btn.removeAttribute('disabled');
         }
-    }
+    }, { baseMs: 30000, maxRetries: 4, capMs: 150000 });
+
+    function generate() { retry.run(); }
 
     async function exportPDF() {
         const body = document.getElementById('sitrepBody');
         if (!body || !lastSitrep) { alert('Generate a SITREP first before exporting.'); return; }
-        // Load jsPDF on demand
         if (typeof window.jspdf === 'undefined') {
             await new Promise((res,rej) => {
                 const s = document.createElement('script');
@@ -2021,8 +1989,8 @@ NEWS SOURCES: ${news.active||0}/${news.total||0} online | ${news.flaggedCount||0
     }
 
     function init() {
-        // Auto-generate every hour
-        autoTimer = setInterval(generate, AUTO_MS);
+        setTimeout(generate, BOOT_DELAY_MS);   // auto-generate shortly after boot
+        setInterval(generate, AUTO_MS);        // then hourly
     }
 
     return { generate, exportPDF, init, getLastSitrep: () => lastSitrep };
@@ -2031,8 +1999,6 @@ NEWS SOURCES: ${news.active||0}/${news.total||0} online | ${news.flaggedCount||0
 
 // ============================================================
 // P3 — EscalationTimeline
-// Interactive event chain correlator. Chains are curated
-// OSINT scenarios; probability values are heuristic estimates.
 // ============================================================
 const EscalationTimeline = (() => {
     const CHAINS = {
@@ -2138,11 +2104,22 @@ const EscalationTimeline = (() => {
 
 // ============================================================
 // P4 — CountryIntelManager
-// Opens a modal with a full intelligence profile when a country
-// is clicked on the map (reverse-geocoded via Nominatim).
+// Patch (this fixes the "China/USA don't always work" bug):
+//  - reverse geocode now forces &accept-language=en, so the
+//    country field always comes back in English instead of
+//    whatever the requester's browser locale would return
+//    natively (this is exactly why China in particular failed —
+//    Nominatim was returning "中国" which matched nothing in
+//    ALIASES).
+//  - request token + lookup cache guard against out-of-order /
+//    duplicate responses from rapid clicks.
+//  - much wider ALIASES table.
+//  - if the resolved country has no DB entry, a generic profile
+//    is shown instead of the modal silently not opening.
+//  - more countries in the static DB (OSINT-competitive: wider
+//    coverage across regions, not just the usual suspects).
 // ============================================================
 const CountryIntelManager = (() => {
-    // Static OSINT-based profiles. Scores 0-100. Sources: IISS, SIPRI, World Bank, Freedom House, NTI, EIU, GPI 2025.
     const DB = {
         'United States': { mil:{cap:98,nuclear:true,forces:'1.3M active',budget:'$886B (FY2024)',nukes:'~5,500 warheads (1,670 deployed)'}, pol:{stability:65,regime:'Federal Constitutional Republic',leader:'Administration 2025–',elections:'Nov 2028'}, econ:{health:78,gdp:'$27.4T',growth:'2.5%',inflation:'3.4%',sanctioned:false}, energy:{security:88,oil:true,gas:true,net:'Exporter'}, food:{security:88}, cyber:{cap:97,groups:['NSA/CYBERCOM','Five Eyes']}, nuclear:{status:'Active — 5,500 warheads'}, alliances:['NATO','AUKUS','Five Eyes','Quad'], conflicts:['Support Ukraine (proxy)','Iraq residual presence','Syria operations'], sanctions:[], threat:35, stability:65, confidence:90 },
         'Russia': { mil:{cap:92,nuclear:true,forces:'1.0M active',budget:'$109B est. (2024)',nukes:'~6,255 warheads (1,674 deployed)'}, pol:{stability:28,regime:'Presidential Federation',leader:'Vladimir Putin',elections:'2030'}, econ:{health:32,gdp:'$2.24T',growth:'2.1%',inflation:'7.4%',sanctioned:true}, energy:{security:95,oil:true,gas:true,net:'Exporter'}, food:{security:72}, cyber:{cap:96,groups:['Sandworm','APT28','Cozy Bear','Turla']}, nuclear:{status:'Active — largest stockpile globally'}, alliances:['CSTO','SCO','BRICS'], conflicts:['Ukraine (active aggressor)','Syria (ongoing)'], sanctions:['EU','US','UK','G7 comprehensive'], threat:88, stability:28, confidence:85 },
@@ -2159,37 +2136,117 @@ const CountryIntelManager = (() => {
         'Chile': { mil:{cap:42,nuclear:false,forces:'80K active',budget:'$5.8B (2024)',nukes:'None'}, pol:{stability:72,regime:'Presidential Republic',leader:'President Gabriel Boric',elections:'Nov 2025'}, econ:{health:65,gdp:'$344B',growth:'2.5%',inflation:'4.1%',sanctioned:false}, energy:{security:42,oil:false,gas:false,net:'Importer (copper exporter)'}, food:{security:78}, cyber:{cap:45,groups:['CSIRT Gov Chile']}, nuclear:{status:'None'}, alliances:['Non-Aligned','CELAC','Pacific Alliance'], conflicts:[], sanctions:[], threat:8, stability:72, confidence:88 },
         'Germany': { mil:{cap:60,nuclear:false,forces:'183K active',budget:'$97B (2024, 2% GDP)',nukes:'None (NATO nuclear sharing)'}, pol:{stability:70,regime:'Federal Parliamentary Republic',leader:'Chancellor (CDU/SPD coalition)',elections:'2025 (completed)'}, econ:{health:68,gdp:'$4.5T',growth:'-0.3%',inflation:'2.2%',sanctioned:false}, energy:{security:50,oil:false,gas:false,net:'Post-Russian-gas importer'}, food:{security:85}, cyber:{cap:80,groups:['BSI','BfV','BND cyber']}, nuclear:{status:'None — participates in NATO nuclear sharing (B61 hosting)'}, alliances:['NATO','EU'], conflicts:['Support Ukraine'], sanctions:[], threat:15, stability:70, confidence:92 },
         'Taiwan': { mil:{cap:65,nuclear:false,forces:'169K active',budget:'$19.1B (2024, expanding)',nukes:'None'}, pol:{stability:70,regime:'Presidential Democracy',leader:'President Lai Ching-te (DPP)',elections:'2028'}, econ:{health:80,gdp:'$760B',growth:'3.1%',inflation:'2.5%',sanctioned:false}, energy:{security:22,oil:false,gas:false,net:'Importer (critical exposure)'}, food:{security:70}, cyber:{cap:72,groups:['MOIS cyber','MND cyber']}, nuclear:{status:'None'}, alliances:['US (Taiwan Relations Act)','Informal partnerships'], conflicts:['PRC coercion / gray zone'], sanctions:[], threat:65, stability:60, confidence:80 },
+        'Pakistan': { mil:{cap:70,nuclear:true,forces:'654K active',budget:'$10.2B (2024)',nukes:'~170 warheads'}, pol:{stability:35,regime:'Federal Parliamentary Republic (military-influenced)',leader:'PM (coalition govt)',elections:'2029'}, econ:{health:30,gdp:'$375B',growth:'2.4%',inflation:'23%',sanctioned:false}, energy:{security:35,oil:false,gas:false,net:'Importer'}, food:{security:48}, cyber:{cap:52,groups:['Transparent Tribe']}, nuclear:{status:'Active — ~170 warheads, no-first-use NOT declared'}, alliances:['China (CPEC partner)','SCO'], conflicts:['India-Pakistan LOC tension','TTP insurgency (KP/Balochistan)'], sanctions:[], threat:60, stability:35, confidence:70 },
+        'South Korea': { mil:{cap:75,nuclear:false,forces:'555K active',budget:'$47.9B (2024)',nukes:'None — under US nuclear umbrella'}, pol:{stability:68,regime:'Presidential Republic',leader:'President (incumbent)',elections:'2027'}, econ:{health:74,gdp:'$1.87T',growth:'2.2%',inflation:'2.6%',sanctioned:false}, energy:{security:28,oil:false,gas:false,net:'Importer (critical dependency)'}, food:{security:65}, cyber:{cap:76,groups:['NIS cyber','KISA']}, nuclear:{status:'None — extended deterrence from US'}, alliances:['US-ROK Mutual Defense Treaty','G20'], conflicts:['Korean DMZ tension','DPRK missile tests'], sanctions:[], threat:42, stability:68, confidence:85 },
+        'Turkey': { mil:{cap:70,nuclear:false,forces:'355K active',budget:'$15.8B (2024)',nukes:'None — NATO nuclear sharing (Incirlik)'}, pol:{stability:48,regime:'Presidential Republic',leader:'President Erdogan',elections:'2028'}, econ:{health:38,gdp:'$1.1T',growth:'3.0%',inflation:'44%',sanctioned:false}, energy:{security:35,oil:false,gas:false,net:'Importer (regional hub)'}, food:{security:62}, cyber:{cap:55,groups:['SEA-adjacent state actors']}, nuclear:{status:'None — hosts NATO B61s'}, alliances:['NATO','OTS (Turkic States)'], conflicts:['Syria border operations','PKK insurgency'], sanctions:[], threat:45, stability:48, confidence:72 },
+        'Egypt': { mil:{cap:62,nuclear:false,forces:'440K active',budget:'$5.6B (2024)',nukes:'None'}, pol:{stability:45,regime:'Presidential Republic (military-backed)',leader:'President El-Sisi',elections:'2030'}, econ:{health:32,gdp:'$387B',growth:'3.8%',inflation:'21%',sanctioned:false}, energy:{security:55,oil:true,gas:true,net:'Net exporter (LNG)'}, food:{security:42}, cyber:{cap:40,groups:['State-linked monitoring units']}, nuclear:{status:'None — El Dabaa civil plant under construction (Rosatom)'}, alliances:['Arab League','Non-Aligned'], conflicts:['Gaza border management','Sinai counter-insurgency (reduced)'], sanctions:[], threat:35, stability:45, confidence:70 },
+        'Poland': { mil:{cap:65,nuclear:false,forces:'216K active',budget:'$32B (2024, ~4% GDP — highest in NATO)',nukes:'None'}, pol:{stability:70,regime:'Parliamentary Republic',leader:'PM (coalition govt)',elections:'2027'}, econ:{health:70,gdp:'$842B',growth:'3.2%',inflation:'4.5%',sanctioned:false}, energy:{security:48,oil:false,gas:false,net:'Diversifying from Russian energy'}, food:{security:82}, cyber:{cap:62,groups:['CERT Polska']}, nuclear:{status:'None — hosts NATO forward presence'}, alliances:['NATO','EU'], conflicts:['Ukraine border support / refugee logistics'], sanctions:[], threat:38, stability:70, confidence:85 },
+        'Brazil': { mil:{cap:55,nuclear:false,forces:'360K active',budget:'$22.8B (2024)',nukes:'None'}, pol:{stability:58,regime:'Federal Presidential Republic',leader:'President Lula',elections:'Oct 2026'}, econ:{health:60,gdp:'$2.17T',growth:'2.9%',inflation:'4.2%',sanctioned:false}, energy:{security:80,oil:true,gas:false,net:'Exporter'}, food:{security:85}, cyber:{cap:48,groups:['CTIR Gov']}, nuclear:{status:'None — Additional Protocol signatory'}, alliances:['BRICS','Mercosur','Non-Aligned'], conflicts:[], sanctions:[], threat:14, stability:58, confidence:80 },
+        'Mexico': { mil:{cap:45,nuclear:false,forces:'277K active',budget:'$8.5B (2024)',nukes:'None'}, pol:{stability:50,regime:'Federal Presidential Republic',leader:'President Sheinbaum',elections:'2030'}, econ:{health:58,gdp:'$1.85T',growth:'1.8%',inflation:'4.6%',sanctioned:false}, energy:{security:65,oil:true,gas:false,net:'Exporter (declining)'}, food:{security:70}, cyber:{cap:42,groups:['Cartel-linked disruption, not state APT']}, nuclear:{status:'None'}, alliances:['USMCA','Non-Aligned'], conflicts:['Cartel violence (non-state, high intensity)'], sanctions:[], threat:28, stability:50, confidence:75 },
+        'Indonesia': { mil:{cap:50,nuclear:false,forces:'395K active',budget:'$9.5B (2024)',nukes:'None'}, pol:{stability:65,regime:'Presidential Republic',leader:'President Prabowo',elections:'2029'}, econ:{health:68,gdp:'$1.4T',growth:'5.0%',inflation:'2.8%',sanctioned:false}, energy:{security:60,oil:true,gas:true,net:'Mixed — net importer of crude'}, food:{security:68}, cyber:{cap:38,groups:['BSSN']}, nuclear:{status:'None'}, alliances:['ASEAN','Non-Aligned Movement (founder)'], conflicts:['South China Sea (Natuna friction, low-level)'], sanctions:[], threat:16, stability:65, confidence:75 },
+        'Vietnam': { mil:{cap:52,nuclear:false,forces:'482K active',budget:'$8.4B (2024)',nukes:'None'}, pol:{stability:68,regime:'Single-Party State (CPV)',leader:'General Secretary (Politburo)',elections:'N/A'}, econ:{health:70,gdp:'$476B',growth:'6.2%',inflation:'3.3%',sanctioned:false}, energy:{security:45,oil:false,gas:false,net:'Importer'}, food:{security:75}, cyber:{cap:45,groups:['APT32/OceanLotus (state-linked)']}, nuclear:{status:'None'}, alliances:['ASEAN','Comprehensive Strategic Partnership w/ US and China'], conflicts:['South China Sea territorial disputes'], sanctions:[], threat:22, stability:68, confidence:70 },
+        'South Africa': { mil:{cap:35,nuclear:false,forces:'71K active',budget:'$3.4B (2024)',nukes:'None — voluntarily dismantled 1989'}, pol:{stability:52,regime:'Parliamentary Republic',leader:'President Ramaphosa (GNU coalition)',elections:'2029'}, econ:{health:42,gdp:'$399B',growth:'1.1%',inflation:'5.0%',sanctioned:false}, energy:{security:32,oil:false,gas:false,net:'Chronic load-shedding / grid stress'}, food:{security:65}, cyber:{cap:35,groups:['State CSIRT nascent']}, nuclear:{status:'None — sole voluntary nuclear disarmament case'}, alliances:['BRICS','African Union','Non-Aligned'], conflicts:[], sanctions:[], threat:12, stability:52, confidence:72 },
+        'Nigeria': { mil:{cap:42,nuclear:false,forces:'223K active',budget:'$3.2B (2024)',nukes:'None'}, pol:{stability:38,regime:'Federal Presidential Republic',leader:'President Tinubu',elections:'2027'}, econ:{health:35,gdp:'$363B',growth:'3.1%',inflation:'31%',sanctioned:false}, energy:{security:70,oil:true,gas:true,net:'Exporter (theft/pipeline losses persistent)'}, food:{security:38}, cyber:{cap:30,groups:['Cybercrime hub — not primarily state APT']}, nuclear:{status:'None'}, alliances:['ECOWAS','African Union'], conflicts:['Boko Haram / ISWAP insurgency (Northeast)','Middle Belt farmer-herder violence'], sanctions:[], threat:42, stability:38, confidence:65 },
+        'Syria': { mil:{cap:30,nuclear:false,forces:'Reconstituting post-2024',budget:'Unclear — transitional',nukes:'None (destroyed program 2013-14)'}, pol:{stability:18,regime:'Transitional government (post-Assad, since Dec 2024)',leader:'Transitional authority',elections:'TBD'}, econ:{health:10,gdp:'~$9B (collapsed)',growth:'Unknown',inflation:'Extreme',sanctioned:true}, energy:{security:15,oil:false,gas:false,net:'Severe shortage'}, food:{security:20}, cyber:{cap:15,groups:[]}, nuclear:{status:'None'}, alliances:['Realigning post-transition'], conflicts:['Post-Assad transition instability','SDF/Turkey friction (North)','Residual ISIS cells'], sanctions:['US/EU (under review post-transition)'], threat:70, stability:15, confidence:45 },
+        'Yemen': { mil:{cap:28,nuclear:false,forces:'Fragmented (Houthi/govt/STC forces)',budget:'Unclear',nukes:'None'}, pol:{stability:10,regime:'Fragmented — no unified government',leader:'Contested (IRG vs Houthi vs STC)',elections:'None'}, econ:{health:5,gdp:'~$21B (PPP, collapsed)',growth:'Unknown',inflation:'Extreme',sanctioned:false}, energy:{security:10,oil:false,gas:false,net:'Collapsed'}, food:{security:8}, cyber:{cap:10,groups:[]}, nuclear:{status:'None'}, alliances:['Houthi: Iran-aligned axis'], conflicts:['Yemen civil war (ongoing since 2014)','Red Sea shipping attacks (Houthi)'], sanctions:['UN arms embargo (Houthi)'], threat:75, stability:10, confidence:55 },
+        'Belarus': { mil:{cap:40,nuclear:false,forces:'48K active',budget:'$1.1B (2024)',nukes:'Hosts Russian tactical nuclear weapons (2023+)'}, pol:{stability:30,regime:'Authoritarian Presidential Republic',leader:'President Lukashenko',elections:'Managed (2025 completed)'}, econ:{health:35,gdp:'$81B',growth:'1.5%',inflation:'5.5%',sanctioned:true}, energy:{security:60,oil:false,gas:false,net:'Russia-dependent'}, food:{security:75}, cyber:{cap:40,groups:['Ghostwriter (state-linked)']}, nuclear:{status:'Hosts Russian tactical nukes — no independent control'}, alliances:['CSTO','Union State w/ Russia','SCO'], conflicts:['Staging ground for Russian operations vs Ukraine'], sanctions:['EU','US comprehensive'], threat:58, stability:30, confidence:65 },
+        'Finland': { mil:{cap:58,nuclear:false,forces:'23K active (280K wartime reserve)',budget:'$6.9B (2024)',nukes:'None — NATO member since 2023'}, pol:{stability:82,regime:'Parliamentary Republic',leader:'President / PM (coalition)',elections:'2027'}, econ:{health:68,gdp:'$300B',growth:'0.5%',inflation:'1.8%',sanctioned:false}, energy:{security:65,oil:false,gas:false,net:'Diversified post-Russia'}, food:{security:85}, cyber:{cap:70,groups:['NCSC-FI']}, nuclear:{status:'None — under NATO nuclear umbrella'}, alliances:['NATO (2023)','EU','Nordic Defence Cooperation'], conflicts:['1,340km Russia border tension'], sanctions:[], threat:25, stability:82, confidence:88 },
+        'Venezuela': { mil:{cap:40,nuclear:false,forces:'123K active',budget:'$1.5B est.',nukes:'None'}, pol:{stability:22,regime:'Authoritarian Presidential Republic',leader:'President Maduro (contested legitimacy)',elections:'Disputed 2024'}, econ:{health:12,gdp:'~$92B (PPP, hyperinflation history)',growth:'Volatile',inflation:'High (improved from peak)',sanctioned:true}, energy:{security:85,oil:true,gas:true,net:'Exporter (under-capacity)'}, food:{security:35}, cyber:{cap:25,groups:[]}, nuclear:{status:'None'}, alliances:['ALBA','Russia/Iran partnership'], conflicts:['Guyana (Essequibo) border dispute','Internal repression'], sanctions:['US oil sector sanctions'], threat:48, stability:22, confidence:60 },
     };
 
-    // Aliases for reverse-geocoding hits
     const ALIASES = {
-        'United States of America':'United States','Republic of Korea':'South Korea',
-        'Democratic People\'s Republic of Korea':'North Korea','Islamic Republic of Iran':'Iran',
-        'Russian Federation':'Russia','Syrian Arab Republic':'Syria',
-        'Republic of China (Taiwan)':'Taiwan','People\'s Republic of China':'China',
+        'United States of America':'United States','USA':'United States','US':'United States',
+        'Republic of Korea':'South Korea','Korea, Republic of':'South Korea',
+        "Democratic People's Republic of Korea":'North Korea','Korea, Democratic People\'s Republic of':'North Korea',
+        'Islamic Republic of Iran':'Iran','Russian Federation':'Russia','Syrian Arab Republic':'Syria',
+        'Republic of China (Taiwan)':'Taiwan','Chinese Taipei':'Taiwan',
+        "People's Republic of China":'China','中国':'China','中華人民共和國':'China',
+        'Türkiye':'Turkey','Republic of Türkiye':'Turkey','Turkiye':'Turkey',
+        'Arab Republic of Egypt':'Egypt','United Mexican States':'Mexico',
+        'Federative Republic of Brazil':'Brazil','Republic of Indonesia':'Indonesia',
+        'Socialist Republic of Vietnam':'Vietnam','Viet Nam':'Vietnam',
+        'Republic of South Africa':'South Africa','Federal Republic of Nigeria':'Nigeria',
+        'Republic of Belarus':'Belarus','Republic of Finland':'Finland','Suomi':'Finland',
+        'Bolivarian Republic of Venezuela':'Venezuela','Republic of Poland':'Poland',
+        'Kingdom of Saudi Arabia':'Saudi Arabia','Republic of Chile':'Chile',
+        'Federal Republic of Germany':'Germany','Deutschland':'Germany',
+        'French Republic':'France','République française':'France',
+        'United Kingdom of Great Britain and Northern Ireland':'United Kingdom',
+        'State of Israel':'Israel','Islamic Republic of Pakistan':'Pakistan',
+        'Republic of India':'India','Ukraine (state)':'Ukraine','Japan (state)':'Japan',
+        "Democratic People's Republic":'North Korea',
     };
 
     function scoreColor(n) { return n>=65?'var(--success)':n>=40?'var(--warning)':'var(--danger)'; }
     function capBar(cap, color) { return `<div class="c-bar"><div class="c-bar-fill" style="width:${cap}%;background:${color};"></div></div>`; }
 
+    // request token guard: only the latest lookup is allowed to render
+    let requestSeq = 0;
+    // small geocode cache keyed by rounded coordinates — cuts down on
+    // Nominatim calls (their usage policy caps at ~1req/sec) and makes
+    // repeat clicks on the same region instant.
+    const geocodeCache = new Map();
+    function cacheKey(lat, lng) { return `${lat.toFixed(1)},${lng.toFixed(1)}`; }
+
+    async function reverseGeocode(lat, lng) {
+        const key = cacheKey(lat, lng);
+        if (geocodeCache.has(key)) return geocodeCache.get(key);
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=5&accept-language=en`;
+        const r = await fetch(url, { headers: { Accept: 'application/json' } });
+        if (!r.ok) throw new Error('NOMINATIM_HTTP_' + r.status);
+        const d = await r.json();
+        const raw = d.address?.country || d.address?.state || null;
+        geocodeCache.set(key, raw);
+        return raw;
+    }
+
     async function showByLatLng(lat, lng) {
+        const mySeq = ++requestSeq;
+        let raw = null;
         try {
-            const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, { headers:{ Accept:'application/json' } });
-            const d = await r.json();
-            const raw = d.address?.country || d.address?.state || null;
-            if (!raw) return;
-            const name = ALIASES[raw] || raw;
-            show(name);
-        } catch(e) { console.warn('Reverse geocode failed', e); }
+            raw = await reverseGeocode(lat, lng);
+        } catch(e) {
+            console.warn('Reverse geocode failed', e);
+        }
+        if (mySeq !== requestSeq) return; // a newer click superseded this one
+        if (!raw) {
+            showOceanOrUnknown();
+            return;
+        }
+        const name = ALIASES[raw] || raw;
+        if (DB[name]) show(name);
+        else showGeneric(name);
+    }
+
+    function showOceanOrUnknown() {
+        document.getElementById('countryModalName').textContent = 'NO LAND TARGET';
+        document.getElementById('countryScoreCluster').innerHTML = '';
+        document.getElementById('countryInfoGrid').innerHTML = `<div class="c-section"><div class="c-section-title">&#9670; No Data</div><div style="font-size:0.8rem;color:var(--text-dark);">That click landed over open ocean or an area with no resolvable country boundary. Click on a landmass to load a profile.</div></div>`;
+        document.getElementById('countryIntelModal').hidden = false;
+    }
+
+    // Fallback for any real country not in the curated DB — so the
+    // modal ALWAYS shows something instead of silently doing nothing.
+    function showGeneric(countryName) {
+        document.getElementById('countryModalName').textContent = countryName;
+        document.getElementById('countryScoreCluster').innerHTML = `<div class="c-score"><div class="c-score-num" style="color:var(--text-dark)">N/A</div><span class="c-score-lbl">Threat Score</span></div><div class="c-score"><div class="c-score-num" style="color:var(--text-dark)">N/A</div><span class="c-score-lbl">Stability Score</span></div><div class="c-score"><div class="c-score-num" style="color:var(--text-dark)">LOW</div><span class="c-score-lbl">Confidence</span></div>`;
+        document.getElementById('countryInfoGrid').innerHTML = `
+        <div class="c-section" style="grid-column:1/-1;">
+            <div class="c-section-title">&#9670; No Curated Profile Yet</div>
+            <div style="font-size:0.8rem;color:var(--text-light);line-height:1.6;">
+                ${countryName} isn't in the current curated OSINT database (${Object.keys(DB).length} profiles covering the highest-relevance actors). This is a placeholder — no fabricated military/economic figures are shown for uncovered countries, only what's structurally known: it resolves to a distinct sovereign entity from the map click.
+            </div>
+            <div class="c-tags" style="margin-top:10px;"><span class="c-tag">Not yet profiled</span></div>
+        </div>`;
+        document.getElementById('countryIntelModal').hidden = false;
     }
 
     function show(countryName) {
         const profile = DB[countryName];
-        if (!profile) return; // No profile for this country
+        if (!profile) { showGeneric(countryName); return; }
 
         document.getElementById('countryModalName').textContent = countryName;
 
-        // Score cluster
         const cluster = document.getElementById('countryScoreCluster');
         cluster.innerHTML = [
             { label:'Threat Score',    val:profile.threat,     },
@@ -2197,7 +2254,6 @@ const CountryIntelManager = (() => {
             { label:'Confidence',      val:profile.confidence, },
         ].map(s=>`<div class="c-score"><div class="c-score-num" style="color:${scoreColor(s.label==='Threat Score'?100-s.val:s.val)}">${s.val}</div><span class="c-score-lbl">${s.label}</span></div>`).join('');
 
-        // Info grid
         const grid = document.getElementById('countryInfoGrid');
         const m = profile.mil, pol = profile.pol, e = profile.econ, en = profile.energy, cy = profile.cyber;
         grid.innerHTML = `
@@ -2260,9 +2316,6 @@ const CountryIntelManager = (() => {
 
 // ============================================================
 // P6 — EarlyWarningEngine
-// Estimates escalation likelihood for 5 key hotspots.
-// Uses ClaudeAPI for per-hotspot analysis; heuristic fallback.
-// Explains WHY scores changed (per brief requirement).
 // ============================================================
 const EarlyWarningEngine = (() => {
     const HOTSPOTS = [
@@ -2273,21 +2326,22 @@ const EarlyWarningEngine = (() => {
         { id:'indiapak', name:'India-Pakistan LOC', baseScore:38, trend:'flat',  drivers:['LOC violations','Nuclear rhetoric','Terror incidents','Water disputes'] },
     ];
 
-    let lastData = HOTSPOTS.map(h => ({ ...h, score: h.baseScore, reason: 'Heuristic baseline — no AI analysis yet.' }));
+    let lastData = HOTSPOTS.map(h => ({ ...h, score: h.baseScore, reason: 'Heuristic baseline — awaiting first AI pass.' }));
     let isRunning = false;
 
     const SYSTEM = `You are an early warning analyst. Given the hotspot data, output ONLY a JSON array — no preamble, no backticks — with one object per hotspot:
 [{"id":"<id>","score":<0-100>,"trend":"up"|"down"|"flat","reason":"<1 sentence explaining why this score and trend>"}]
 Do NOT predict the future. Estimate likelihood based only on observable indicators provided. Confidence must be expressly tied to indicator count.`;
 
-    async function refreshWithAI() {
-        if (isRunning) return;
+    const retry = makeRetryScheduler(async () => {
+        if (isRunning) return true;
         isRunning = true;
         const intel = IntelEngine.getLastResult() || IntelEngine.calculateDefcon();
         const conflicts = MapManager.getActiveConflicts ? MapManager.getActiveConflicts() : [];
         const context = `DEFCON: ${intel.defcon?.level} | Threat Score: ${intel.score?.toFixed(1)}%
 CONFLICT INTENSITIES: ${conflicts.map(c=>`${c.label}=${Math.round(c.intensity*100)}%`).join(', ')}
 HOTSPOTS FOR ANALYSIS: ${HOTSPOTS.map(h=>`${h.id}(${h.name}): base=${h.baseScore}%, drivers=[${h.drivers.join(', ')}]`).join(' | ')}`;
+        let ok = false;
         try {
             const result = await ClaudeAPI.queryJSON(SYSTEM, context, 600);
             if (Array.isArray(result)) {
@@ -2295,13 +2349,15 @@ HOTSPOTS FOR ANALYSIS: ${HOTSPOTS.map(h=>`${h.id}(${h.name}): base=${h.baseScore
                     const idx = lastData.findIndex(h => h.id === item.id);
                     if (idx >= 0) lastData[idx] = { ...lastData[idx], score:item.score||lastData[idx].score, trend:item.trend||lastData[idx].trend, reason:item.reason||'' };
                 });
+                ok = true;
             }
         } catch(e) {
             console.warn('EarlyWarningEngine AI failed, using heuristics', e.message);
         }
         render();
         isRunning = false;
-    }
+        return ok;
+    }, { baseMs: 30000, maxRetries: 3, capMs: 120000 });
 
     function trendIcon(t) { return t==='up'?'<span class="ew-trend-up">&#9650;</span>':t==='down'?'<span class="ew-trend-down">&#9660;</span>':'<span class="ew-trend-flat">&#9654;</span>'; }
     function scoreColor(s) { return s>=65?'var(--danger)':s>=40?'var(--warning)':'var(--success)'; }
@@ -2325,20 +2381,17 @@ HOTSPOTS FOR ANALYSIS: ${HOTSPOTS.map(h=>`${h.id}(${h.name}): base=${h.baseScore
     }
 
     function init() {
-        render(); // immediate heuristic render
-        refreshWithAI();
-        setInterval(refreshWithAI, 10 * 60 * 1000); // refresh every 10 min
+        render();
+        retry.run();
+        setInterval(() => retry.run(), 10 * 60 * 1000);
     }
 
-    return { init, refreshWithAI, getLastData: () => lastData };
+    return { init, refreshWithAI: () => retry.run(), getLastData: () => lastData };
 })();
 
 
 // ============================================================
 // P7 — SupplyChainMonitor
-// Renders commodity disruption risk + maritime chokepoints.
-// Data is OSINT-curated; live news feed enrichment via
-// AlarmManager keyword filter.
 // ============================================================
 const SupplyChainMonitor = (() => {
     const COMMODITIES = [
@@ -2399,7 +2452,6 @@ const SupplyChainMonitor = (() => {
 
 // ============================================================
 // P8 — NavalIntelManager
-// Renders naval asset card from MapManager's static dataset.
 // ============================================================
 const NavalIntelManager = (() => {
     const ASSETS = [
@@ -2434,8 +2486,6 @@ const NavalIntelManager = (() => {
 
 // ============================================================
 // P9 — SpaceDomainManager
-// Fetches NOAA SWPC data (CORS-enabled, direct fetch) for
-// solar and geomagnetic activity. Static launch log.
 // ============================================================
 const SpaceDomainManager = (() => {
     const NOAA_KP  = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json';
@@ -2496,7 +2546,7 @@ const SpaceDomainManager = (() => {
     }
 
     function renderSpaceView() {
-        const kp = kpIndex != null ? kpIndex : 2.3; // fallback typical quiet value
+        const kp = kpIndex != null ? kpIndex : 2.3;
         const xr = xrayFlux;
         const statGrid = document.getElementById('spaceStatGrid');
         if (statGrid) {
@@ -2546,9 +2596,10 @@ const SpaceDomainManager = (() => {
         }
     }
 
+    let intervalStarted = false;
     function refresh() {
         fetchSpaceWeather();
-        setInterval(fetchSpaceWeather, 15 * 60 * 1000);
+        if (!intervalStarted) { intervalStarted = true; setInterval(fetchSpaceWeather, 15 * 60 * 1000); }
     }
 
     return { refresh, renderSpaceView };
@@ -2557,8 +2608,6 @@ const SpaceDomainManager = (() => {
 
 // ============================================================
 // P10 — EconomicRiskEngine
-// Aggregates MarketManager data + geopolitical vectors into a
-// Global Economic Stress Index (0-100).
 // ============================================================
 const EconomicRiskEngine = (() => {
     let lastScore = null;
@@ -2566,9 +2615,9 @@ const EconomicRiskEngine = (() => {
     function computeScore() {
         const vol = MarketManager.getVolatility ? MarketManager.getVolatility() : null;
         const intel = IntelEngine.getLastResult() || IntelEngine.calculateDefcon();
-        const geoContribution = intel.score * 0.30; // geopolitical stress component
-        const marketContribution = vol ? Math.min(vol.percent * 4, 35) : 18; // market volatility component
-        const supplyBase = 25; // supply chain baseline (Hormuz/Bab el-Mandeb elevated)
+        const geoContribution = intel.score * 0.30;
+        const marketContribution = vol ? Math.min(vol.percent * 4, 35) : 18;
+        const supplyBase = 25;
         const score = Math.min(100, Math.round(geoContribution + marketContribution + supplyBase));
         lastScore = score;
         return { score, vol, intel };
@@ -2615,7 +2664,6 @@ const EconomicRiskEngine = (() => {
 
 // ============================================================
 // P11 — PandemicMonitor
-// Static WHO/CDC outbreak dataset + news feed keyword filter.
 // ============================================================
 const PandemicMonitor = (() => {
     const OUTBREAKS = [
@@ -2648,8 +2696,12 @@ const PandemicMonitor = (() => {
 
 // ============================================================
 // P12 — CivilUnrestTracker
-// Static dataset of known elections, protests, crises.
-// Augmented by AlarmManager feed keyword filtering.
+// Patch: this used to be pure static data rendered exactly
+// once at boot. It now merges in "LIVE DETECTED" items pulled
+// from the same news feeds AlarmManager is already polling
+// (matching protest/coup/election/martial-law keywords),
+// re-checks every time fresh news lands, and shows a genuinely
+// updating status line instead of a static "MONITORING" forever.
 // ============================================================
 const CivilUnrestTracker = (() => {
     const EVENTS = [
@@ -2670,28 +2722,76 @@ const CivilUnrestTracker = (() => {
 
     const typeColor = { ELECTION:'var(--info)', PROTEST:'var(--warning)', 'COUP / CRISIS':'var(--danger)', EMERGENCY:'var(--danger)' };
 
+    const UNREST_KEYWORDS = ['protest','strike','coup','martial law','curfew','riot','unrest','crackdown','election','referendum','general strike','opposition arrested','junta','uprising','manifest','golpe','disturbios','huelga','toque de queda'];
+    let liveItems = []; // { name, meta, note, type, ts }
+    const MAX_LIVE = 5;
+
+    function detectLiveFromHeadlines() {
+        if (typeof AlarmManager === 'undefined' || !AlarmManager.getLiveHeadlines) return [];
+        const headlines = AlarmManager.getLiveHeadlines();
+        const seen = new Set(liveItems.map(i => i.name));
+        const found = [];
+        headlines.forEach(h => {
+            const text = (h.text || '').trim();
+            if (!text) return;
+            const lower = text.toLowerCase();
+            const hit = UNREST_KEYWORDS.find(k => lower.includes(k));
+            if (!hit) return;
+            if (seen.has(text)) return;
+            seen.add(text);
+            found.push({
+                type: /coup|golpe|junta/.test(lower) ? 'COUP / CRISIS' : /election|referendum/.test(lower) ? 'ELECTION' : 'PROTEST',
+                name: text,
+                meta: `${h.source || 'LIVE-FEED'} &middot; ${new Date().toLocaleTimeString()}`,
+                note: `Auto-detected from live news feed (keyword: "${hit}"). Not independently verified against ACLED.`,
+                isLive: true,
+            });
+        });
+        return found;
+    }
+
+    function refreshLive() {
+        const found = detectLiveFromHeadlines();
+        if (found.length) {
+            liveItems = found.concat(liveItems).slice(0, MAX_LIVE);
+        }
+        render();
+    }
+
     function render() {
         const list = document.getElementById('unrestList');
         if (!list) return;
-        list.innerHTML = EVENTS.map(e => `
+        const liveHtml = liveItems.map(e => `
+            <div class="unrest-entry is-live">
+                <div class="unrest-type" style="color:${typeColor[e.type]||'var(--danger)'}">&#9670; ${e.type}<span class="unrest-live-badge">LIVE</span></div>
+                <div class="unrest-name">${e.name}</div>
+                <div class="unrest-meta">${e.meta}</div>
+                <div class="unrest-meta" style="margin-top:2px;color:var(--text-dark);font-size:0.68rem;">${e.note}</div>
+            </div>`).join('');
+        const staticHtml = EVENTS.map(e => `
             <div class="unrest-entry">
                 <div class="unrest-type" style="color:${typeColor[e.type]||'var(--text-dark)'}">&#9670; ${e.type}</div>
                 <div class="unrest-name">${e.name}</div>
                 <div class="unrest-meta">${e.meta}</div>
                 <div class="unrest-meta" style="margin-top:2px;color:var(--text-dark);font-size:0.68rem;">${e.note}</div>
             </div>`).join('');
+        list.innerHTML = liveHtml + staticHtml;
+
         const statusEl = document.getElementById('unrestStatus');
-        if (statusEl) { statusEl.textContent = '\u25CF MONITORING'; statusEl.className = 'feed-status status-partial'; }
+        if (statusEl) {
+            if (liveItems.length) { statusEl.textContent = `\u25CF MONITORING +${liveItems.length} LIVE`; statusEl.className = 'feed-status status-online'; }
+            else { statusEl.textContent = '\u25CF MONITORING'; statusEl.className = 'feed-status status-partial'; }
+        }
+        const srcEl = document.getElementById('unrestSourceLabel');
+        if (srcEl) srcEl.textContent = `Sources: ACLED-style baseline dataset + ${liveItems.length} live news-detected item(s) &middot; last scan ${new Date().toLocaleTimeString()}`;
     }
 
-    return { render };
+    return { render, refreshLive };
 })();
 
 
 // ============================================================
 // P13 — ScenarioAnalysis
-// AI-powered impact simulation across 8 domains.
-// Clearly labeled as simulation, not prediction.
 // ============================================================
 const ScenarioAnalysis = (() => {
     const SCENARIOS = [
@@ -2815,8 +2915,6 @@ This is a SIMULATION based on current observable conditions. CLEARLY acknowledge
 
 // ============================================================
 // P15 — FusionCenter
-// Auto-correlates signals from all active modules.
-// Identifies causal chains and produces correlation insights.
 // ============================================================
 const FusionCenter = (() => {
     const CHAIN_TEMPLATES = [
@@ -2854,7 +2952,6 @@ const FusionCenter = (() => {
         const topHotspot = ew.length ? ew.sort((a,b)=>b.score-a.score)[0] : null;
 
         const insights = [];
-        // Insight 1: cross-domain correlation based on real data
         const topConflict = conflicts[0];
         if (topConflict && vol) {
             insights.push({
@@ -2863,7 +2960,6 @@ const FusionCenter = (() => {
                 body: `${topConflict.label} (${Math.round(topConflict.intensity*100)}% intensity) correlates with ${vol.percent.toFixed(1)}% avg market movement in ${vol.category}. Historical pattern: conflict escalation precedes 2-5 day market lag.`
             });
         }
-        // Insight 2: Early warning + DEFCON correlation
         if (topHotspot) {
             insights.push({
                 score: Math.round((topHotspot.score + intel.score) / 2),
@@ -2871,7 +2967,6 @@ const FusionCenter = (() => {
                 body: `${topHotspot.name} escalation index (${topHotspot.score}%) is ${topHotspot.trend === 'up' ? 'INCREASING' : topHotspot.trend === 'down' ? 'DECREASING' : 'STABLE'}. Combined with DEFCON ${intel.defcon?.level} posture, corroboration confidence: MEDIUM.`
             });
         }
-        // Insight 3: Economic stress correlation
         insights.push({
             score: econScore || 55,
             title: 'Economic Stress ↔ Geopolitical Risk Coupling',
@@ -2880,12 +2975,12 @@ const FusionCenter = (() => {
         return insights;
     }
 
+    let intervalStarted = false;
     function render() {
         const chainContainer = document.getElementById('fusionChainContainer');
         const insightContainer = document.getElementById('fusionInsights');
         if (!chainContainer || !insightContainer) return;
 
-        // Render chain templates (rotating)
         const chain = CHAIN_TEMPLATES[Math.floor(Date.now() / 60000) % CHAIN_TEMPLATES.length];
         chainContainer.innerHTML = `<div style="font-size:0.78rem;font-weight:700;color:var(--text-dark);letter-spacing:0.5px;margin-bottom:12px;">${chain.title}</div>
             <div class="fusion-chain">
@@ -2903,7 +2998,6 @@ const FusionCenter = (() => {
                 <div class="fusion-chain-footer">&#9670; ${chain.footer}</div>
             </div>`;
 
-        // Render live insights
         const insights = buildInsights();
         insightContainer.innerHTML = insights.map(ins => {
             const col = ins.score>=70?'var(--danger)':ins.score>=45?'var(--warning)':'var(--success)';
@@ -2920,7 +3014,7 @@ const FusionCenter = (() => {
 
     function refresh() {
         render();
-        if (ViewManager.getCurrent() === 'fusion') setInterval(render, 90 * 1000);
+        if (!intervalStarted) { intervalStarted = true; setInterval(render, 90 * 1000); }
     }
 
     return { refresh, render };
@@ -2928,8 +3022,7 @@ const FusionCenter = (() => {
 
 
 // ============================================================
-// StrategicAssessment — Heuristic scenario matrix (preserved
-// from v2026.3, kept as the three-path analysis card).
+// StrategicAssessment — heuristic scenario matrix.
 // ============================================================
 const StrategicAssessment = (() => {
     function gatherInputs() {
@@ -3013,8 +3106,7 @@ const StrategicAssessment = (() => {
 
 
 // ============================================================
-// UIManager — keyboard shortcuts, fullscreen, PNG export,
-// legend collapse. Enhanced with new layer keys Y/E/V/H.
+// UIManager
 // ============================================================
 const UIManager = (() => {
     const KEY_TO_LAYER = {
@@ -3037,7 +3129,6 @@ const UIManager = (() => {
 
     async function exportPNG() {
         if (typeof html2canvas === 'undefined') { alert('html2canvas not loaded.'); return; }
-        const btn = document.getElementById('btn-sitrep');
         try {
             const canvas = await html2canvas(document.querySelector('.container'), { backgroundColor:'#040f08', useCORS:true, scale:2 });
             const a = document.createElement('a');
@@ -3066,7 +3157,7 @@ const UIManager = (() => {
 
 
 // ============================================================
-// BOOT — initialise every module in dependency order.
+// BOOT
 // ============================================================
 MapManager.renderGeoFreshness();
 MapManager.renderSafeZoneCard();
@@ -3074,40 +3165,36 @@ IntelEngine.refreshAndRender();
 MapManager.init();
 UIManager.init();
 
-// Render static panels immediately
 NavalIntelManager.render();
 PandemicMonitor.render();
 CivilUnrestTracker.render();
 EscalationTimeline.init();
 StrategicAssessment.init();
 
-// Start live feeds
 AlarmManager.startTickers();
 MarketManager.refresh().then(() => {
     EconomicRiskEngine.refresh();
     StrategicAssessment.render();
 });
 
-// Start AI modules (async, graceful fallback built in)
+// AI modules — each now auto-generates on boot + retries on failure
 StrategicIntelEngine.init();
 SitrepManager.init();
 EarlyWarningEngine.init();
 
-// Live data refreshes
 MapManager.refreshEarthquakes();
 MapManager.refreshAircraft();
 
-// Periodic refresh schedule
 setInterval(() => IntelEngine.refreshAndRender(), 30000);
 setInterval(MapManager.pruneExpiredEventMarkers, 60000);
 setInterval(MarketManager.refresh, 60000);
 setInterval(MapManager.refreshEarthquakes, 90000);
+setInterval(CivilUnrestTracker.refreshLive, 3 * 60 * 1000);
 setInterval(() => {
     EconomicRiskEngine.refresh();
     FusionCenter.render();
 }, 120000);
 
-// Mark AI engine active
 const aiStatusEl = document.getElementById('aiEngineStatus');
 if (aiStatusEl) aiStatusEl.textContent = 'ACTIVE — claude-sonnet-4-6';
 
