@@ -411,7 +411,7 @@
     <header>
         <h1>QUANTUM RISK DESK v2026.5 — SIFCENTER<span class="blink-cursor">&nbsp;</span></h1>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <div style="font-family:monospace;font-size:0.85rem;color:var(--warning);text-shadow:0 0 6px var(--warning);">[ STRATEGIC INTEL FUSION — JUNE 2026 ]</div>
+            <div style="font-family:monospace;font-size:0.85rem;color:var(--warning);text-shadow:0 0 6px var(--warning);">[ STRATEGIC INTEL FUSION — <span id="liveMonthYear1">JUNE 2026</span> ]</div>
             <button class="layer-btn active-info" id="btn-sitrep" onclick="SitrepManager.generate()" title="Generate AI SITREP (X)">&#127757; GEN SITREP</button>
             <button class="layer-btn active-mil"  id="btn-fullscreen" onclick="UIManager.toggleFullscreen()" title="Fullscreen (F)">&#9974; FULLSCREEN</button>
             <button class="layer-btn active-safe" onclick="UIManager.exportPNG()" title="Export PNG (P)">&#128247; EXPORT PNG</button>
@@ -524,7 +524,7 @@
                     <div class="defcon-row" id="legend-1"><div class="defcon-dot dot-d"></div><span><strong>DEFCON 1</strong> — COCKED PISTOL. Nuclear war imminent. Never officially declared.</span></div>
                     <div class="defcon-row" id="legend-2"><div class="defcon-dot dot-d"></div><span><strong>DEFCON 2</strong> — FAST PACE. Armed forces ready within 6 hrs. Cuba 1962.</span></div>
                     <div class="defcon-row" id="legend-3"><div class="defcon-dot dot-w"></div><span><strong>DEFCON 3</strong> — ROUND HOUSE. Air Force ready in 15 min. 1973, 2001.</span></div>
-                    <div class="defcon-row" id="legend-4"><div class="defcon-dot dot-w"></div><span><strong>DEFCON 4</strong> — DOUBLE TAKE. Heightened watch. Analyst consensus June 2026.</span></div>
+                    <div class="defcon-row" id="legend-4"><div class="defcon-dot dot-w"></div><span><strong>DEFCON 4</strong> — DOUBLE TAKE. Heightened watch. Analyst consensus <span id="liveMonthYear2">June 2026</span>.</span></div>
                     <div class="defcon-row" id="legend-5"><div class="defcon-dot dot-g"></div><span><strong>DEFCON 5</strong> — FADE OUT. Peacetime baseline.</span></div>
                 </div>
             </div>
@@ -548,7 +548,7 @@
             </div>
 
             <div class="card">
-                <h2>Global Vector Weights — June 2026</h2>
+                <h2>Global Vector Weights — <span id="liveMonthYear3">June 2026</span></h2>
                 <div class="vector-row">
                     <div class="vector-item">
                         <div class="vector-meta"><span class="vector-name">Nuclear Threat Profile</span><span class="vector-value" style="color:var(--warning);">72%</span></div>
@@ -566,7 +566,7 @@
                         <span class="vector-source">CRI 2026 (Germanwatch): compounding losses. 1.5°C targets out of reach. (OECD CAM 2025)</span>
                     </div>
                 </div>
-                <p class="vector-lock-note">&#9632; VECTORS LOCKED — calibrated to latest published assessments June 2026.</p>
+                <p class="vector-lock-note">&#9632; VECTORS LOCKED — calibrated to latest published assessments <span id="liveMonthYear4">June 2026</span>.</p>
             </div>
 
             <div class="card">
@@ -681,7 +681,7 @@
         </div>
 
         <div class="card" style="margin-top:24px;">
-            <h2>&#10022; Probable Nuclear Survival Zones — June 2026 Analysis</h2>
+            <h2>&#10022; Probable Nuclear Survival Zones — <span id="liveMonthYear5">June 2026</span> Analysis</h2>
             <div class="safezone-grid" id="safezoneList"></div>
             <p class="safezone-disclaimer">
                 &#9888; Analysis based on open-source targeting doctrine, geographic isolation, agricultural capacity, and fallout modeling. No location is categorically safe. Sources: BAS 2026, SIPRI 2025, Princeton Science &amp; Global Security, GPI 2025.
@@ -809,7 +809,7 @@
         </div>
         <div class="country-info-grid" id="countryInfoGrid"></div>
         <div style="margin-top:14px;font-size:0.68rem;color:var(--text-dark);border-top:1px solid var(--border);padding-top:10px;font-style:italic;">
-            &#9888; Profile data is a static open-source assessment as of June 2026. Numbers are analyst estimates from public sources (IISS, World Bank, SIPRI, Freedom House, NTI, EIU). Click map to load new profile.
+            &#9888; Profile data is a static open-source assessment as of <span id="liveMonthYear6">June 2026</span>. Numbers are analyst estimates from public sources (IISS, World Bank, SIPRI, Freedom House, NTI, EIU). Click map to load new profile.
         </div>
     </div>
 </div>
@@ -845,6 +845,27 @@
 // ============================================================
 // DataFetcher — all network access.
 // ============================================================
+// ============================================================
+// Live date helper — every "as of <month year>" label in this
+// dashboard used to be a hardcoded "June 2026" that quietly went
+// stale the moment the calendar turned. This computes the actual
+// current month/year from the visitor's own clock instead, so
+// the whole page always reads as current rather than needing a
+// manual edit every month.
+// ============================================================
+function currentMonthYear(uppercase) {
+    const s = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    return uppercase ? s.toUpperCase() : s;
+}
+function stampLiveDates() {
+    const uppercaseIds = new Set(['liveMonthYear1']); // header banner reads ALL CAPS
+    ['liveMonthYear1','liveMonthYear2','liveMonthYear3','liveMonthYear4','liveMonthYear5','liveMonthYear6'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = currentMonthYear(uppercaseIds.has(id));
+    });
+}
+
+
 const DataFetcher = (() => {
     const PROXIES = [
         url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
@@ -1092,7 +1113,7 @@ const IntelEngine = (() => {
         1: "COCKED PISTOL. Nuclear conflict imminent. Maximum force deployment. Never officially declared.",
         2: "FAST PACE. Armed forces ready within 6 hours. Highest ever officially reached — Cuba, October 1962.",
         3: "ROUND HOUSE. Air Force ready within 15 minutes. Declared 1973, 2001.",
-        4: "DOUBLE TAKE. Heightened intelligence watch. Analyst consensus for real-world posture June 2026.",
+        4: `DOUBLE TAKE. Heightened intelligence watch. Analyst consensus for real-world posture ${currentMonthYear(false)}.`,
         5: "FADE OUT. Normal peacetime readiness."
     };
     let lastScore = null, lastResult = null;
@@ -3315,6 +3336,7 @@ const UIManager = (() => {
 // ============================================================
 // BOOT
 // ============================================================
+stampLiveDates();
 MapManager.renderGeoFreshness();
 MapManager.renderSafeZoneCard();
 IntelEngine.refreshAndRender();
