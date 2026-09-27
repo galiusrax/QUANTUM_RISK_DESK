@@ -398,13 +398,6 @@
     </style>
 </head>
 <body>
-<script>
-    // Points the dashboard's AI calls (SITREP, Strategic Intel, Early
-    // Warning, Scenarios) at Francisco's deployed Cloudflare Worker proxy
-    // instead of api.anthropic.com directly, so they actually work on a
-    // real deployment (see qrd-ai-proxy-worker.js).
-    window.QRD_CLAUDE_PROXY_URL = 'https://qrd-ai-proxy.ignacio-pshome.workers.dev';
-</script>
 
 <div class="container">
 
@@ -412,7 +405,7 @@
         <h1>QUANTUM RISK DESK v2026.5 — SIFCENTER<span class="blink-cursor">&nbsp;</span></h1>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <div style="font-family:monospace;font-size:0.85rem;color:var(--warning);text-shadow:0 0 6px var(--warning);">[ STRATEGIC INTEL FUSION — <span id="liveMonthYear1">JUNE 2026</span> ]</div>
-            <button class="layer-btn active-info" id="btn-sitrep" onclick="SitrepManager.generate()" title="Generate AI SITREP (X)">&#127757; GEN SITREP</button>
+            <button class="layer-btn active-info" id="btn-sitrep" onclick="SitrepManager.generate()" title="Generate SITREP (X)">&#127757; GEN SITREP</button>
             <button class="layer-btn active-mil"  id="btn-fullscreen" onclick="UIManager.toggleFullscreen()" title="Fullscreen (F)">&#9974; FULLSCREEN</button>
             <button class="layer-btn active-safe" onclick="UIManager.exportPNG()" title="Export PNG (P)">&#128247; EXPORT PNG</button>
         </div>
@@ -430,7 +423,7 @@
 
         <div class="card intel-banner" id="strategicIntelCard">
             <h2 class="card-header-row">
-                <span>&#127907; AI Strategic Intelligence Assessment</span>
+                <span>&#127907; Strategic Intelligence Assessment</span>
                 <span id="intelEngineStatus" class="feed-status status-offline">&#9679; INITIALIZING</span>
             </h2>
             <div class="intel-main-row">
@@ -443,7 +436,7 @@
                     <div id="intelDriversList"></div>
                 </div>
             </div>
-            <div class="intel-summary" id="intelSummaryText">Awaiting AI analysis — engine initializing...</div>
+            <div class="intel-summary" id="intelSummaryText">Awaiting analysis — engine initializing...</div>
             <div class="intel-footer-row">
                 <span class="intel-sources" id="intelSources">Sources: —</span>
                 <span id="intelConfBadge"></span>
@@ -576,7 +569,7 @@
                 </h2>
                 <div class="ew-grid" id="ewGrid"></div>
                 <div class="panel-confidence" id="ewConfidence">
-                    <span>Confidence: MEDIUM | Heuristic model + AI analysis</span>
+                    <span>Confidence: MEDIUM | Heuristic model</span>
                     <span class="confidence-badge conf-medium">MEDIUM CONF</span>
                 </div>
             </div>
@@ -663,11 +656,11 @@
 
         <div class="card" id="sitrepCard" style="margin-top:24px;">
             <h2 class="card-header-row">
-                <span>&#127757; AI SITREP — Situation Report</span>
+                <span>&#127757; SITREP — Situation Report</span>
                 <span id="sitrepStatus" class="feed-status status-offline">&#9679; STANDBY</span>
             </h2>
             <div class="sitrep-controls">
-                <button class="layer-btn active-info" onclick="SitrepManager.generate()">&#9733; Generate Now (AI)</button>
+                <button class="layer-btn active-info" onclick="SitrepManager.generate()">&#9733; Generate Now</button>
                 <button class="layer-btn active-safe" onclick="SitrepManager.exportPDF()">&#128203; Export PDF</button>
                 <span class="sitrep-meta" id="sitrepMeta">Auto-generating on boot &middot; refreshes hourly &middot; Last: never</span>
             </div>
@@ -675,8 +668,8 @@
                 <div class="sitrep-placeholder">SITREP not yet generated. Auto-generation starts a few seconds after load, or press "Generate Now".</div>
             </div>
             <div class="panel-confidence" id="sitrepConf">
-                <span>AI-generated assessment &middot; Claude claude-sonnet-4-6 &middot; Based on current module state</span>
-                <span class="confidence-badge conf-medium">AI GENERATED</span>
+                <span>Heuristic assessment &middot; Based on current module state</span>
+                <span class="confidence-badge conf-medium">HEURISTIC</span>
             </div>
         </div>
 
@@ -715,7 +708,7 @@
             <span>NEXT REVIEW: <strong id="geoNextLabel">--</strong></span>
             <span>NEWS SOURCES: <strong id="sourceCountLabel">0</strong> / <span id="sourceTotalLabel">0</span></span>
             <span>AIRCRAFT: <strong id="aircraftCountLabel">0</strong></span>
-            <span>AI ENGINE: <strong id="aiEngineStatus">ACTIVE</strong></span>
+            <span>ENGINE: <strong id="aiEngineStatus">HEURISTIC</strong></span>
         </div>
     </div>
 
@@ -781,16 +774,16 @@
 
     <div id="view-scenarios" class="view" hidden>
         <div class="card">
-            <h2>&#9878; AI-Powered Scenario Analysis</h2>
-            <div class="scenario-disclaimer-banner">&#9888; SIMULATION ONLY — All scenarios are AI-generated projections based on current observable conditions. Not predictions. Not intelligence products. Clearly labeled hypothetical analysis.</div>
+            <h2>&#9878; Scenario Analysis</h2>
+            <div class="scenario-disclaimer-banner">&#9888; SIMULATION ONLY — All scenarios are heuristic projections based on current observable conditions. Not predictions. Not intelligence products. Clearly labeled hypothetical analysis.</div>
             <h2 style="font-size:0.78rem;margin-bottom:10px;color:var(--text-dark);border:none;padding:0;">Select a scenario:</h2>
             <div class="scenario-selector" id="scenarioSelector"></div>
             <div id="scenarioOutputArea">
-                <div class="scenario-ai-placeholder">Select a scenario above to generate AI-powered impact analysis across key global domains.</div>
+                <div class="scenario-ai-placeholder">Select a scenario above to generate a heuristic impact analysis across key global domains.</div>
             </div>
             <div class="panel-confidence" style="margin-top:16px;" id="scenarioPanelConf">
-                <span>AI Model: claude-sonnet-4-6 &middot; Based on observable open-source conditions &middot; Heuristic fallback if API unavailable</span>
-                <span class="confidence-badge conf-medium">AI SIMULATION</span>
+                <span>Heuristic model &middot; Based on observable open-source conditions and historical precedent</span>
+                <span class="confidence-badge conf-medium">HEURISTIC</span>
             </div>
         </div>
     </div>
@@ -818,29 +811,27 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 /* ============================================================
- * QUANTUM RISK DESK v2026.5 — STRATEGIC INTELLIGENCE FUSION CENTER
- * Patch notes vs v2026.4 (Francisco's fix list):
- *  1) SITREP + AI Strategic Assessment now auto-generate on boot
- *     and retry with backoff instead of silently sitting in
- *     fallback mode until the next full interval.
- *  2) Country Intel modal: Nominatim reverse-geocode now forces
- *     English names (fixes China/other non-EN-locale countries
- *     returning native-script names that didn't match the DB),
- *     caches lookups, guards against out-of-order responses, has
- *     a wider alias table + more countries, and always shows
- *     SOMETHING (a generic profile) instead of silently doing
- *     nothing when a country isn't in the static DB.
- *  3) Civil Unrest panel now pulls live matches out of the news
- *     feeds already being polled (protest/coup/election keywords)
- *     and merges them on top of the static baseline every 3 min.
- *  4) Air Traffic layer: anonymous OpenSky access is unreliable/
- *     rate-limited in 2026, so it's tried first and then falls
- *     back automatically to airplanes.live (no-key) queries over
- *     a curated set of hotspot regions, which is also more
- *     "OSINT-competitive" (aircraft density AROUND crises, not a
- *     random global sample) and always ends in a clear status
- *     instead of a bare "0".
+ * QUANTUM RISK DESK v2026.5 — HEURISTIC-ONLY BUILD
+ * Patch notes vs v2026.5 (AI removed):
+ *  - No more calls to api.anthropic.com / any Claude proxy Worker.
+ *    Every "AI" panel (Strategic Intel, SITREP, Early Warning,
+ *    Scenarios) now runs its heuristic fallback path ONLY —
+ *    same one that used to kick in automatically when the API
+ *    was unreachable, so behavior for the viewer is unchanged
+ *    except the status badges are honest about it (no more
+ *    "GENERATING…" / "retrying" states that never resolve).
+ *  - This removes 100% of API cost and the dependency on a paid
+ *    key or a working Cloudflare Worker proxy. Nothing else in
+ *    the dashboard (map, news, markets, quakes, space weather,
+ *    aircraft) changes — those were always free public feeds.
+ *  - Re-enabling AI later: flip AI_ENABLED back to true and
+ *    point window.QRD_CLAUDE_PROXY_URL at a working backend
+ *    proxy that holds the API key server-side.
  * ============================================================ */
+
+// Master switch — everything AI-shaped in this file checks this
+// flag before doing anything network-related. Off = zero API cost.
+const AI_ENABLED = false;
 
 // ============================================================
 // DataFetcher — all network access.
@@ -957,103 +948,9 @@ const DataFetcher = (() => {
 
 
 // ============================================================
-// AIAvailability — session-wide circuit breaker for the Claude
-// API calls. This HTML only gets api.anthropic.com proxied for
-// free when it's rendered inside Claude.ai's own Artifact host.
-// Opened standalone (a downloaded file, GitHub Pages, any other
-// hosting) the browser blocks the request outright (CORS) or the
-// server 401s (no key) — every AI panel would otherwise retry
-// with backoff forever, each attempt logging its own console
-// error. This breaker makes that failure happen ONCE per session
-// (one console.info explaining why), then every automatic
-// (timer-driven) refresh skips the network call entirely and
-// goes straight to its heuristic fallback. A manual click (the
-// GEN SITREP button, a scenario pick) always still tries for
-// real, in case this is running somewhere the call DOES work, or
-// window.QRD_CLAUDE_PROXY_URL has been pointed at a real backend.
-// ============================================================
-const AIAvailability = (() => {
-    let state = 'unknown'; // 'unknown' | 'available' | 'unavailable'
-    let notified = false;
-
-    function markAvailable() { state = 'available'; }
-
-    function markUnavailable(reason) {
-        state = 'unavailable';
-        if (!notified) {
-            notified = true;
-            console.info(
-                '[QRD] AI generation (SITREP / Strategic Intel / Early Warning / Scenarios) is unavailable in this environment' +
-                (reason ? ' (' + reason + ')' : '') +
-                '. This is expected outside Claude.ai\'s Artifact host — api.anthropic.com is not reachable client-side without a backend proxy holding a key. ' +
-                'Every panel is switching to heuristic-only mode for the rest of this session to stop repeat console errors. ' +
-                'Press "Generate Now" / "GEN SITREP" any time to retry manually, or set window.QRD_CLAUDE_PROXY_URL to your own backend proxy before this script runs to make AI generation work when self-hosted.'
-            );
-        }
-    }
-
-    // Automatic (timer/boot-driven) callers should check this first and
-    // skip the network call entirely once we know it's broken.
-    function shouldAutoAttempt() { return state !== 'unavailable'; }
-
-    return { markAvailable, markUnavailable, shouldAutoAttempt, getState: () => state };
-})();
-
-
-// ============================================================
-// ClaudeAPI — Anthropic /v1/messages wrapper (Claude-in-Claude).
-// Reports success/failure to AIAvailability so every panel shares
-// one circuit breaker instead of each failing (and logging) on
-// its own schedule.
-// ============================================================
-const ClaudeAPI = (() => {
-    const ENDPOINT = (typeof window !== 'undefined' && window.QRD_CLAUDE_PROXY_URL) || 'https://api.anthropic.com/v1/messages';
-    const MODEL = 'claude-sonnet-4-6';
-
-    async function query(systemPrompt, userPrompt, maxTokens = 1000) {
-        try {
-            const response = await fetch(ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: MODEL,
-                    max_tokens: maxTokens,
-                    system: systemPrompt,
-                    messages: [{ role: 'user', content: userPrompt }]
-                })
-            });
-            if (!response.ok) {
-                const errText = await response.text().catch(() => String(response.status));
-                throw new Error(`API ${response.status}: ${errText}`);
-            }
-            const data = await response.json();
-            AIAvailability.markAvailable();
-            return data.content?.[0]?.text || '';
-        } catch (e) {
-            // A fetch that never reached a server (CORS block, offline,
-            // DNS failure) throws a bare TypeError with no status code —
-            // that, or any non-2xx response, both mean "can't use the AI
-            // here right now" from this environment's point of view.
-            AIAvailability.markUnavailable(e.message || 'network error');
-            throw e;
-        }
-    }
-
-    async function queryJSON(systemPrompt, userPrompt, maxTokens = 1000) {
-        const raw = await query(systemPrompt, userPrompt, maxTokens);
-        const clean = raw.replace(/```json|```/g, '').trim();
-        return JSON.parse(clean);
-    }
-
-    return { query, queryJSON };
-})();
-
-
-// ============================================================
-// RetryScheduler — small helper so AI panels actually recover
-// on their own instead of waiting for the next full interval
-// when a generation attempt fails. Exponential-ish backoff,
-// capped, then hands back off to the caller's normal interval.
+// RetryScheduler — small helper (still used by non-AI panels
+// that legitimately retry public/free feeds, e.g. RSS, market
+// data). AI panels no longer use this — see AI_ENABLED above.
 // ============================================================
 function makeRetryScheduler(fn, { baseMs = 20000, maxRetries = 4, capMs = 180000 } = {}) {
     let retryCount = 0;
@@ -1825,38 +1722,10 @@ const MarketManager = (() => {
 
 
 // ============================================================
-// P1 — StrategicIntelEngine
-// Patch: generate() now runs immediately at boot (in addition
-// to the instant heuristic paint) and uses a retry scheduler on
-// failure so the panel actually recovers within ~1-3 minutes
-// instead of waiting out the full 5-minute interval.
+// P1 — StrategicIntelEngine (heuristic-only)
 // ============================================================
 const StrategicIntelEngine = (() => {
-    const REFRESH_MS = 5 * 60 * 1000;
-    const SYSTEM = `You are a senior analyst at a Strategic Intelligence Fusion Center. Analyze the provided open-source data snapshot and output ONLY a JSON object — no preamble, no backticks — with exactly these keys:
-{
-  "escalationRisk": <integer 0-100>,
-  "primaryDrivers": [<string>, <string>, <string>, <string>, <string>],
-  "confidence": "Low"|"Medium"|"High",
-  "sources": [<string>, <string>, <string>],
-  "executiveSummary": <1-2 sentence plain-English assessment>,
-  "analystNote": <1 sentence caveat or analytical limitation>
-}
-Base the assessment ONLY on the provided data. Never speculate beyond observable indicators. Clearly distinguish factual reporting from analysis.`;
-
-    let isGenerating = false, lastAssessment = null;
-
-    function gatherContext() {
-        const intel = IntelEngine.getLastResult() || IntelEngine.calculateDefcon();
-        const conflicts = MapManager.getActiveConflicts ? MapManager.getActiveConflicts().slice(0,5) : [];
-        const vol = MarketManager.getVolatility ? MarketManager.getVolatility() : null;
-        const news = AlarmManager.getNewsSourceHealth ? AlarmManager.getNewsSourceHealth() : {};
-        return `DEFCON Level: ${intel.defcon?.level||'?'} | Threat Score: ${intel.score?.toFixed(1)||'?'}% | Seconds-to-Midnight (sim): ${intel.secondsToMidnight||'?'}
-TOP CONFLICT ZONES: ${conflicts.map(c=>`${c.label} (${Math.round(c.intensity*100)}%)`).join(', ')||'None tracked'}
-MARKET VOLATILITY: ${vol?`avg ${vol.percent?.toFixed(2)}% across ${vol.category} (${vol.sampleSize} symbols)`:'No live data'}
-NEWS HEALTH: ${news.active||0}/${news.total||0} sources online | ${news.flaggedCount||0} high-severity items flagged
-TIMESTAMP: ${new Date().toISOString()}`;
-    }
+    let lastAssessment = null;
 
     function setStatus(msg, cls='status-offline') {
         const el = document.getElementById('intelEngineStatus');
@@ -1896,12 +1765,6 @@ TIMESTAMP: ${new Date().toISOString()}`;
         const intel = IntelEngine.getLastResult() || IntelEngine.calculateDefcon();
         const conflicts = MapManager.getActiveConflicts ? MapManager.getActiveConflicts().slice(0,5) : [];
         const risk = Math.round(intel.score || 68);
-        // Once the shared breaker has actually given up on automatic
-        // retries, say so plainly instead of claiming "(retrying)"
-        // forever — that reads as permanently stuck/broken even though
-        // it's working exactly as designed (heuristic mode, manual
-        // retry still available via the button).
-        const settled = AIAvailability.getState() === 'unavailable';
         const fallback = {
             escalationRisk: risk,
             primaryDrivers: [
@@ -1913,51 +1776,24 @@ TIMESTAMP: ${new Date().toISOString()}`;
             ],
             confidence: 'Medium',
             sources: ['ACLED 2026','BAS Jan 2026','DNI ATA 2026'],
-            executiveSummary: `Heuristic assessment based on DEFCON ${intel.defcon?.level||'?'} posture and current conflict zone intensities. AI analysis unavailable in this hosting context — displaying calculated fallback.`,
-            analystNote: settled
-                ? 'ClaudeAPI unreachable from this deployment (needs a backend proxy holding an API key). Heuristic model active — no further automatic retries this session.'
-                : 'ClaudeAPI unavailable — heuristic model active. Retrying automatically.',
+            executiveSummary: `Heuristic assessment based on DEFCON ${intel.defcon?.level||'?'} posture and current conflict zone intensities.`,
+            analystNote: 'Heuristic model — no AI generation in this build.',
         };
         renderAssessment(fallback);
-        setStatus(settled ? 'HEURISTIC MODE' : 'HEURISTIC MODE (retrying)', 'status-partial');
+        lastAssessment = fallback;
+        setStatus('HEURISTIC MODE', 'status-partial');
     }
 
-
-    const retry = makeRetryScheduler(async (isRetry) => {
-        if (isGenerating) return true; // don't stack
-        isGenerating = true;
-        setStatus(isRetry ? 'RETRYING\u2026' : 'GENERATING\u2026', 'status-partial');
-        try {
-            const ctx = gatherContext();
-            const result = await ClaudeAPI.queryJSON(SYSTEM, ctx, 800);
-            lastAssessment = { ...result, generatedAt: new Date() };
-            renderAssessment(lastAssessment);
-            setStatus('AI ACTIVE', 'status-online');
-            return true;
-        } catch(e) {
-            console.warn('StrategicIntelEngine API failed, using fallback', e.message);
-            renderFallback();
-            return false;
-        } finally {
-            isGenerating = false;
-        }
-    }, { baseMs: 25000, maxRetries: 5, capMs: 120000 });
-
-    // manual=true always attempts (used for the very first boot call, so
-    // we actually learn whether AI is reachable here). Automatic
-    // (interval/onUpdate) calls pass manual=false and skip the network
-    // call entirely once the shared breaker knows it's unavailable —
-    // no repeat console errors, just a silent fallback re-render.
-    function generate(manual = true) {
-        if (!manual && !AIAvailability.shouldAutoAttempt()) { renderFallback(); return; }
-        retry.run();
+    // manual/auto no longer matter — both paths always render the
+    // heuristic fallback. Kept as a function (rather than inlining
+    // everywhere) so re-enabling AI later is a small, local change.
+    function generate() {
+        renderFallback();
     }
 
     function init() {
-        renderFallback();  // instant paint
-        generate(true);    // first real attempt — establishes AI availability
-        setInterval(() => generate(false), REFRESH_MS);
-        IntelEngine.onUpdate(() => { if (!isGenerating) generate(false); });
+        renderFallback();
+        IntelEngine.onUpdate(() => renderFallback());
     }
 
     return { init, generate, getLastAssessment: () => lastAssessment };
@@ -1965,54 +1801,14 @@ TIMESTAMP: ${new Date().toISOString()}`;
 
 
 // ============================================================
-// P2 — SitrepManager
-// Patch: auto-generates shortly after boot (not just on the
-// hourly timer or a manual click) and retries with backoff if
-// the API call fails, so "auto update" actually recovers.
+// P2 — SitrepManager (heuristic-only)
 // ============================================================
 const SitrepManager = (() => {
-    const AUTO_MS = 60 * 60 * 1000; // 1 hour steady-state cadence
-    const BOOT_DELAY_MS = 8000;     // let other modules populate context first
-    const SYSTEM = `You are a strategic intelligence analyst writing a classified situation report (SITREP). Output ONLY valid JSON — no preamble, no backticks — with exactly these keys:
-{
-  "classification": "UNCLASSIFIED // OSINT // FOR TRAINING USE ONLY",
-  "executiveSummary": <2-3 sentences>,
-  "highPriorityEvents": [<string>, <string>, <string>],
-  "militaryDevelopments": [<string>, <string>],
-  "economicDevelopments": [<string>, <string>],
-  "cyberDevelopments": [<string>, <string>],
-  "spaceDevelopments": [<string>],
-  "disasterWeather": [<string>],
-  "escalationPaths": [<string>, <string>],
-  "confidence": "Low"|"Medium"|"High",
-  "analystAttention": [<string>, <string>, <string>]
-}
-Base ONLY on provided data. Label clearly as OSINT analysis, not intelligence. Use professional military reporting style.`;
-
     let lastSitrep = null;
 
     function setStatus(msg, cls='status-offline') {
         const el = document.getElementById('sitrepStatus');
         if (el) { el.textContent = '\u25CF ' + msg; el.className = 'feed-status ' + cls; }
-    }
-
-    function gatherFullContext() {
-        const intel = IntelEngine.getLastResult() || IntelEngine.calculateDefcon();
-        const conflicts = MapManager.getActiveConflicts ? MapManager.getActiveConflicts() : [];
-        const vol = MarketManager.getVolatility ? MarketManager.getVolatility() : null;
-        const news = AlarmManager.getNewsSourceHealth ? AlarmManager.getNewsSourceHealth() : {};
-        const ewData = EarlyWarningEngine ? EarlyWarningEngine.getLastData() : [];
-        const econRisk = EconomicRiskEngine ? EconomicRiskEngine.getLastScore() : null;
-        const ai = StrategicIntelEngine.getLastAssessment();
-        return `=== SITREP CONTEXT SNAPSHOT — ${new Date().toISOString()} ===
-DEFCON: ${intel.defcon?.level} (${intel.defcon?.label}) | Score: ${intel.score?.toFixed(1)}%
-AI ASSESSMENT: Escalation Risk ${ai?.escalationRisk||'?'}% | Confidence: ${ai?.confidence||'?'}
-SUMMARY: ${ai?.executiveSummary||'No AI assessment'}
-CONFLICT ZONES (${conflicts.length}): ${conflicts.map(c=>`${c.label} ${Math.round(c.intensity*100)}%`).join(' | ')}
-MARKET: ${vol?`${vol.percent?.toFixed(2)}% avg volatility (${vol.category})`:'No data'}
-ECONOMIC STRESS INDEX: ${econRisk!=null?econRisk+'%':'No data'}
-EARLY WARNING: ${ewData.map(e=>`${e.name} ${e.score}% (${e.trend})`).join(' | ')||'No data'}
-NEWS SOURCES: ${news.active||0}/${news.total||0} online | ${news.flaggedCount||0} high-severity`;
     }
 
     function renderSitrep(sitrep) {
@@ -2037,21 +1833,20 @@ NEWS SOURCES: ${news.active||0}/${news.total||0} online | ${news.flaggedCount||0
                 ${section('NATURAL HAZARDS / WEATHER', sitrep.disasterWeather)}
                 ${section('POTENTIAL ESCALATION PATHS', sitrep.escalationPaths)}
                 ${section('RECOMMENDED ANALYST ATTENTION', sitrep.analystAttention)}
-                <div style="margin-top:14px;font-size:0.68rem;color:var(--text-dark);border-top:1px solid var(--border);padding-top:8px;">Confidence: ${sitrep.confidence||'?'} | Generated: ${new Date().toLocaleString()} | Model: claude-sonnet-4-6</div>
+                <div style="margin-top:14px;font-size:0.68rem;color:var(--text-dark);border-top:1px solid var(--border);padding-top:8px;">Confidence: ${sitrep.confidence||'?'} | Generated: ${new Date().toLocaleString()} | Model: Heuristic (no AI)</div>
             </div>`;
 
-        setStatus('GENERATED', 'status-online');
+        setStatus('HEURISTIC MODE', 'status-partial');
         const metaEl = document.getElementById('sitrepMeta');
-        if (metaEl) metaEl.textContent = `Last generated: ${new Date().toLocaleTimeString()} | Next auto: T+60min`;
+        if (metaEl) metaEl.textContent = `Last generated: ${new Date().toLocaleTimeString()} | Heuristic build — no AI backend in use`;
     }
 
     function renderFallback() {
         const intel = IntelEngine.getLastResult() || IntelEngine.calculateDefcon();
         const ai = StrategicIntelEngine.getLastAssessment();
-        const settled = AIAvailability.getState() === 'unavailable';
-        renderSitrep({
-            classification: 'UNCLASSIFIED // OSINT // HEURISTIC FALLBACK',
-            executiveSummary: ai?.executiveSummary || `Current posture: DEFCON ${intel.defcon?.level}. Heuristic SITREP — AI generation unavailable in this hosting context. Key concerns: active conflicts in Ukraine, Middle East, and South China Sea tension continue to drive elevated threat indices.`,
+        const sitrep = {
+            classification: 'UNCLASSIFIED // OSINT // HEURISTIC MODEL',
+            executiveSummary: ai?.executiveSummary || `Current posture: DEFCON ${intel.defcon?.level}. Heuristic SITREP. Key concerns: active conflicts in Ukraine, Middle East, and South China Sea tension continue to drive elevated threat indices.`,
             highPriorityEvents: ['Russia-Ukraine active front — eastern corridor ongoing','Iran-Israel: post-ceasefire compliance monitoring active','South China Sea: PLA naval exercise activity elevated'],
             militaryDevelopments: ['NATO northern flank reinforcements continue','US carrier strike groups: 3 deployed — Mediterranean, Western Pacific, Eastern Atlantic'],
             economicDevelopments: ['Energy price volatility linked to Gulf sector tensions','Supply chain stress at Bab el-Mandeb remains elevated (Houthi operations)'],
@@ -2061,48 +1856,13 @@ NEWS SOURCES: ${news.active||0}/${news.total||0} online | ${news.flaggedCount||0
             escalationPaths: ['Russia-NATO: miscalculation risk elevated near contact line','Iran: nuclear program timeline compression — P5+1 diplomatic track stalled'],
             confidence: 'Medium',
             analystAttention: ['Monitor Russian Northern Fleet movements','Watch Taiwan Strait PLAN exercise scheduling','Track WHO H5N1 avian influenza spread velocity'],
-        });
-        // renderSitrep() above always stamps status as GENERATED — this is
-        // a fallback, so overwrite it with an accurate label. Once the
-        // breaker has actually stopped auto-retrying, say so instead of
-        // implying it's still perpetually trying and failing.
-        setStatus(settled ? 'HEURISTIC MODE' : 'FALLBACK (retrying)', 'status-partial');
-        const metaEl = document.getElementById('sitrepMeta');
-        if (metaEl) {
-            metaEl.textContent = settled
-                ? `Heuristic mode — no AI backend reachable here. Press "Generate Now" to retry, or last generated: ${lastSitrep ? new Date().toLocaleTimeString() : 'never'}`
-                : `Retrying automatically \u2026 last attempt: ${new Date().toLocaleTimeString()}`;
-        }
+        };
+        lastSitrep = sitrep;
+        renderSitrep(sitrep);
     }
 
-
-    const retry = makeRetryScheduler(async (isRetry) => {
-        setStatus(isRetry ? 'RETRYING\u2026' : 'GENERATING\u2026', 'status-partial');
-        const btn = document.getElementById('btn-sitrep');
-        if (btn) btn.setAttribute('disabled','1');
-        try {
-            const ctx = gatherFullContext();
-            lastSitrep = await ClaudeAPI.queryJSON(SYSTEM, ctx, 1000);
-            renderSitrep(lastSitrep);
-            return true;
-        } catch(e) {
-            console.warn('SitrepManager API failed, using fallback', e.message);
-            renderFallback();
-            return false;
-        } finally {
-            if (btn) btn.removeAttribute('disabled');
-        }
-    }, { baseMs: 30000, maxRetries: 4, capMs: 150000 });
-
-    // manual=true (the default — covers both header/panel buttons, since
-    // their onclick calls generate() with no args) always attempts, even
-    // if the breaker previously tripped, in case the environment changed.
-    // Automatic boot/hourly calls pass manual=false and skip the network
-    // call once AI is known unavailable, rendering the (already-labeled)
-    // fallback instead of retrying into more console errors.
-    function generate(manual = true) {
-        if (!manual && !AIAvailability.shouldAutoAttempt()) { renderFallback(); return; }
-        retry.run();
+    function generate() {
+        renderFallback();
     }
 
     async function exportPDF() {
@@ -2127,7 +1887,7 @@ NEWS SOURCES: ${news.active||0}/${news.total||0} online | ${news.flaggedCount||0
             doc.setFontSize(9);
             doc.setTextColor(150,150,150);
             doc.text(lastSitrep.classification||'UNCLASSIFIED // OSINT', 20, 28);
-            doc.text(`Generated: ${stamp} | Model: claude-sonnet-4-6`, 20, 34);
+            doc.text(`Generated: ${stamp} | Heuristic model (no AI)`, 20, 34);
 
             doc.setFont('courier','normal');
             doc.setFontSize(10);
@@ -2165,8 +1925,8 @@ NEWS SOURCES: ${news.active||0}/${news.total||0} online | ${news.flaggedCount||0
     }
 
     function init() {
-        setTimeout(() => generate(false), BOOT_DELAY_MS);   // auto-generate shortly after boot
-        setInterval(() => generate(false), AUTO_MS);        // then hourly
+        setTimeout(() => generate(), 2000);   // instant heuristic paint shortly after boot
+        setInterval(() => generate(), 60 * 60 * 1000); // hourly refresh, still heuristic-only
     }
 
     return { generate, exportPDF, init, getLastSitrep: () => lastSitrep };
@@ -2280,20 +2040,6 @@ const EscalationTimeline = (() => {
 
 // ============================================================
 // P4 — CountryIntelManager
-// Patch (this fixes the "China/USA don't always work" bug):
-//  - reverse geocode now forces &accept-language=en, so the
-//    country field always comes back in English instead of
-//    whatever the requester's browser locale would return
-//    natively (this is exactly why China in particular failed —
-//    Nominatim was returning "中国" which matched nothing in
-//    ALIASES).
-//  - request token + lookup cache guard against out-of-order /
-//    duplicate responses from rapid clicks.
-//  - much wider ALIASES table.
-//  - if the resolved country has no DB entry, a generic profile
-//    is shown instead of the modal silently not opening.
-//  - more countries in the static DB (OSINT-competitive: wider
-//    coverage across regions, not just the usual suspects).
 // ============================================================
 const CountryIntelManager = (() => {
     const DB = {
@@ -2489,7 +2235,7 @@ const CountryIntelManager = (() => {
 
 
 // ============================================================
-// P6 — EarlyWarningEngine
+// P6 — EarlyWarningEngine (heuristic-only)
 // ============================================================
 const EarlyWarningEngine = (() => {
     const HOTSPOTS = [
@@ -2500,38 +2246,7 @@ const EarlyWarningEngine = (() => {
         { id:'indiapak', name:'India-Pakistan LOC', baseScore:38, trend:'flat',  drivers:['LOC violations','Nuclear rhetoric','Terror incidents','Water disputes'] },
     ];
 
-    let lastData = HOTSPOTS.map(h => ({ ...h, score: h.baseScore, reason: 'Heuristic baseline — awaiting first AI pass.' }));
-    let isRunning = false;
-
-    const SYSTEM = `You are an early warning analyst. Given the hotspot data, output ONLY a JSON array — no preamble, no backticks — with one object per hotspot:
-[{"id":"<id>","score":<0-100>,"trend":"up"|"down"|"flat","reason":"<1 sentence explaining why this score and trend>"}]
-Do NOT predict the future. Estimate likelihood based only on observable indicators provided. Confidence must be expressly tied to indicator count.`;
-
-    const retry = makeRetryScheduler(async () => {
-        if (isRunning) return true;
-        isRunning = true;
-        const intel = IntelEngine.getLastResult() || IntelEngine.calculateDefcon();
-        const conflicts = MapManager.getActiveConflicts ? MapManager.getActiveConflicts() : [];
-        const context = `DEFCON: ${intel.defcon?.level} | Threat Score: ${intel.score?.toFixed(1)}%
-CONFLICT INTENSITIES: ${conflicts.map(c=>`${c.label}=${Math.round(c.intensity*100)}%`).join(', ')}
-HOTSPOTS FOR ANALYSIS: ${HOTSPOTS.map(h=>`${h.id}(${h.name}): base=${h.baseScore}%, drivers=[${h.drivers.join(', ')}]`).join(' | ')}`;
-        let ok = false;
-        try {
-            const result = await ClaudeAPI.queryJSON(SYSTEM, context, 600);
-            if (Array.isArray(result)) {
-                result.forEach(item => {
-                    const idx = lastData.findIndex(h => h.id === item.id);
-                    if (idx >= 0) lastData[idx] = { ...lastData[idx], score:item.score||lastData[idx].score, trend:item.trend||lastData[idx].trend, reason:item.reason||'' };
-                });
-                ok = true;
-            }
-        } catch(e) {
-            console.warn('EarlyWarningEngine AI failed, using heuristics', e.message);
-        }
-        render();
-        isRunning = false;
-        return ok;
-    }, { baseMs: 30000, maxRetries: 3, capMs: 120000 });
+    let lastData = HOTSPOTS.map(h => ({ ...h, score: h.baseScore, reason: 'Heuristic baseline model.' }));
 
     function trendIcon(t) { return t==='up'?'<span class="ew-trend-up">&#9650;</span>':t==='down'?'<span class="ew-trend-down">&#9660;</span>':'<span class="ew-trend-flat">&#9654;</span>'; }
     function scoreColor(s) { return s>=65?'var(--danger)':s>=40?'var(--warning)':'var(--success)'; }
@@ -2548,22 +2263,17 @@ HOTSPOTS FOR ANALYSIS: ${HOTSPOTS.map(h=>`${h.id}(${h.name}): base=${h.baseScore
                 </div>
                 <div class="ew-drivers">${(h.drivers||[]).slice(0,3).map(d=>`&#9830; ${d}`).join('<br>')}</div>
                 ${h.reason?`<div class="ew-reason">&#9650; <em>${h.reason}</em></div>`:''}
-                <div class="ew-conf">Escalation index — heuristic + AI estimate</div>
+                <div class="ew-conf">Escalation index — heuristic baseline</div>
             </div>`).join('');
         const statusEl = document.getElementById('ewStatus');
-        if (statusEl) { statusEl.textContent = '\u25CF ACTIVE'; statusEl.className = 'feed-status status-online'; }
+        if (statusEl) { statusEl.textContent = '\u25CF HEURISTIC'; statusEl.className = 'feed-status status-partial'; }
     }
 
     function init() {
         render();
-        retry.run(); // first attempt always fires — helps establish AI availability
-        setInterval(() => {
-            if (AIAvailability.shouldAutoAttempt()) retry.run();
-            else render(); // breaker tripped — just re-render the heuristic baseline, no fetch
-        }, 10 * 60 * 1000);
     }
 
-    return { init, refreshWithAI: () => retry.run(), getLastData: () => lastData };
+    return { init, refreshWithAI: () => render(), getLastData: () => lastData };
 })();
 
 
@@ -2968,7 +2678,7 @@ const CivilUnrestTracker = (() => {
 
 
 // ============================================================
-// P13 — ScenarioAnalysis
+// P13 — ScenarioAnalysis (heuristic-only)
 // ============================================================
 const ScenarioAnalysis = (() => {
     const SCENARIOS = [
@@ -2984,25 +2694,6 @@ const ScenarioAnalysis = (() => {
 
     const DOMAINS = ['Markets','Energy','Food','Shipping','Military','Civil Aviation','Supply Chains','Global Stability'];
 
-    const SYSTEM = `You are a strategic risk analyst running a tabletop scenario simulation. Given a crisis scenario, output ONLY valid JSON — no preamble, no backticks:
-{
-  "scenarioName": "<scenario name>",
-  "impactAssessment": [
-    {"domain":"Markets","level":"Critical|High|Moderate|Low","detail":"<1-sentence impact>"},
-    {"domain":"Energy","level":"...","detail":"..."},
-    {"domain":"Food","level":"...","detail":"..."},
-    {"domain":"Shipping","level":"...","detail":"..."},
-    {"domain":"Military","level":"...","detail":"..."},
-    {"domain":"Civil Aviation","level":"...","detail":"..."},
-    {"domain":"Supply Chains","level":"...","detail":"..."},
-    {"domain":"Global Stability","level":"...","detail":"..."}
-  ],
-  "cascadeNarrative": "<3-4 sentences describing how cascading effects unfold over 30-90 days>",
-  "timeToImpact": "<estimated time for maximum impact>",
-  "confidenceNote": "<1 sentence on analytical uncertainty>"
-}
-This is a SIMULATION based on current observable conditions. CLEARLY acknowledge it is not a prediction. Use professional strategic risk analysis language.`;
-
     const FALLBACK_DATA = {
         taiwan:   { Markets:'Critical — TSMC halt, tech sector collapse', Energy:'High — Pacific shipping disruption', Food:'Moderate — grain route delays', Shipping:'Critical — Pacific routes blocked', Military:'Critical — regional war risk', 'Civil Aviation':'High — Pacific airspace closure', 'Supply Chains':'Critical — semiconductor shock', 'Global Stability':'Critical — great power confrontation' },
         hormuz:   { Markets:'Critical — oil spike $150+/bbl', Energy:'Critical — 20M bbl/day halted', Food:'High — fertilizer/shipping cost surge', Shipping:'Critical — Gulf rerouting', Military:'High — USN 5th Fleet action', 'Civil Aviation':'Low — limited direct effect', 'Supply Chains':'Critical — petrochemical cascade', 'Global Stability':'High — coalition fragmentation risk' },
@@ -3014,7 +2705,7 @@ This is a SIMULATION based on current observable conditions. CLEARLY acknowledge
         nuclear:  { Markets:'Critical — global market halt', Energy:'High — regional grid disruption', Food:'High — contamination fears, panic buying', Shipping:'High — exclusion zones, insurance withdrawal', Military:'Critical — nuclear escalation ladder', 'Civil Aviation':'Critical — airspace closure', 'Supply Chains':'Critical — regional economic paralysis', 'Global Stability':'Critical — existential escalation risk' },
     };
 
-    let activeScenario = null, isAnalyzing = false, initialized = false;
+    let activeScenario = null, initialized = false;
 
     function levelClass(l) { return l==='Critical'?'impact-critical':l==='High'?'impact-high':l==='Moderate'?'impact-moderate':'impact-low'; }
 
@@ -3028,48 +2719,16 @@ This is a SIMULATION based on current observable conditions. CLEARLY acknowledge
         ).join('');
     }
 
-    async function analyze(scenarioId) {
-        if (isAnalyzing) return;
+    function analyze(scenarioId) {
         const scenario = SCENARIOS.find(s => s.id === scenarioId);
         if (!scenario) return;
         activeScenario = scenarioId;
-        isAnalyzing = true;
 
         document.querySelectorAll('.scenario-pick-btn').forEach(b => b.classList.remove('active'));
         const btn = document.getElementById('spb-' + scenarioId);
         if (btn) btn.classList.add('active');
 
-        const outputArea = document.getElementById('scenarioOutputArea');
-        if (outputArea) outputArea.innerHTML = `<div class="scenario-ai-placeholder ai-generating">&#9632;&#9632;&#9632; AI ANALYZING SCENARIO: ${scenario.label.toUpperCase()} — PLEASE WAIT...</div>`;
-
-        const intel = IntelEngine.getLastResult() || IntelEngine.calculateDefcon();
-        const context = `SCENARIO: ${scenario.label}\nDESCRIPTION: ${scenario.desc}\nCURRENT BASELINE: DEFCON ${intel.defcon?.level} | Threat Score ${intel.score?.toFixed(1)}%\nANALYSIS DATE: ${new Date().toISOString()}`;
-
-        try {
-            const result = await ClaudeAPI.queryJSON(SYSTEM, context, 1000);
-            renderAIResult(result, scenario);
-        } catch(e) {
-            console.warn('ScenarioAnalysis API failed, using fallback', e.message);
-            renderFallback(scenario);
-        } finally {
-            isAnalyzing = false;
-        }
-    }
-
-    function renderAIResult(result, scenario) {
-        const outputArea = document.getElementById('scenarioOutputArea');
-        if (!outputArea) return;
-        const domains = result.impactAssessment || DOMAINS.map(d=>({domain:d,level:'Moderate',detail:'Analysis unavailable'}));
-        outputArea.innerHTML = `
-            <div class="scenario-output">${domains.map(d=>`
-                <div class="scenario-domain">
-                    <div class="scenario-domain-name">${d.domain}</div>
-                    <div class="scenario-domain-impact ${levelClass(d.level)}">${d.level}</div>
-                    <div class="scenario-domain-detail">${d.detail}</div>
-                </div>`).join('')}
-            </div>
-            ${result.cascadeNarrative?`<div class="scenario-ai-narrative"><strong style="color:var(--text-dark);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;">CASCADE NARRATIVE (30-90 day projection)</strong><br><br>${result.cascadeNarrative}</div>`:''}
-            <div style="margin-top:12px;font-size:0.7rem;color:var(--text-dark);font-style:italic;">${result.confidenceNote||''} Time to maximum impact: ${result.timeToImpact||'Scenario-dependent'}.</div>`;
+        renderFallback(scenario);
     }
 
     function renderFallback(scenario) {
@@ -3083,7 +2742,7 @@ This is a SIMULATION based on current observable conditions. CLEARLY acknowledge
                 const detail = val.replace(/^(Critical|High|Moderate|Low)\s*—\s*/,'');
                 return `<div class="scenario-domain"><div class="scenario-domain-name">${d}</div><div class="scenario-domain-impact ${levelClass(level)}">${level}</div><div class="scenario-domain-detail">${detail}</div></div>`;
             }).join('')}</div>
-            <div style="margin-top:12px;font-size:0.7rem;color:var(--text-dark);font-style:italic;">Heuristic fallback — AI analysis unavailable. Estimates based on historical precedent and published risk research. Not a prediction.</div>`;
+            <div style="margin-top:12px;font-size:0.7rem;color:var(--text-dark);font-style:italic;">Heuristic model — estimates based on historical precedent and published risk research. Not a prediction.</div>`;
     }
 
     return { init, analyze };
@@ -3355,7 +3014,7 @@ MarketManager.refresh().then(() => {
     StrategicAssessment.render();
 });
 
-// AI modules — each now auto-generates on boot + retries on failure
+// Heuristic-only panels — no network cost, instant paint
 StrategicIntelEngine.init();
 SitrepManager.init();
 EarlyWarningEngine.init();
@@ -3374,7 +3033,7 @@ setInterval(() => {
 }, 120000);
 
 const aiStatusEl = document.getElementById('aiEngineStatus');
-if (aiStatusEl) aiStatusEl.textContent = 'ACTIVE — claude-sonnet-4-6';
+if (aiStatusEl) aiStatusEl.textContent = 'HEURISTIC';
 
 </script>
 </body>
