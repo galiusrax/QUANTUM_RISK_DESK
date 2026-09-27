@@ -398,6 +398,14 @@
     </style>
 </head>
 <body>
+<script>
+    // Points the dashboard's AI calls (SITREP, Strategic Intel, Early
+    // Warning, Scenarios) at Francisco's deployed Cloudflare Worker proxy
+    // instead of api.anthropic.com directly, so they actually work on a
+    // real deployment (see qrd-ai-proxy-worker.js).
+    window.QRD_CLAUDE_PROXY_URL = 'https://qrd-ai-proxy.ignacio-pshome.workers.dev';
+</script>
+
 <div class="container">
 
     <header>
@@ -1142,7 +1150,7 @@ const IntelEngine = (() => {
 // MapManager — Leaflet instance + all layers.
 // ============================================================
 const MapManager = (() => {
-    const GEO_DATASET_REVISION = '2026-06-21';
+    const GEO_DATASET_REVISION = '2026-09-16';
     const GEO_REVIEW_INTERVAL_DAYS = 30;
 
     const conflictHotspots = [
@@ -1867,6 +1875,12 @@ TIMESTAMP: ${new Date().toISOString()}`;
         const intel = IntelEngine.getLastResult() || IntelEngine.calculateDefcon();
         const conflicts = MapManager.getActiveConflicts ? MapManager.getActiveConflicts().slice(0,5) : [];
         const risk = Math.round(intel.score || 68);
+        // Once the shared breaker has actually given up on automatic
+        // retries, say so plainly instead of claiming "(retrying)"
+        // forever — that reads as permanently stuck/broken even though
+        // it's working exactly as designed (heuristic mode, manual
+        // retry still available via the button).
+        const settled = AIAvailability.getState() === 'unavailable';
         const fallback = {
             escalationRisk: risk,
             primaryDrivers: [
@@ -1878,12 +1892,15 @@ TIMESTAMP: ${new Date().toISOString()}`;
             ],
             confidence: 'Medium',
             sources: ['ACLED 2026','BAS Jan 2026','DNI ATA 2026'],
-            executiveSummary: `Heuristic assessment based on DEFCON ${intel.defcon?.level||'?'} posture and current conflict zone intensities. AI analysis temporarily unavailable — displaying calculated fallback.`,
-            analystNote: 'ClaudeAPI unavailable — heuristic model active. Will retry automatically.',
+            executiveSummary: `Heuristic assessment based on DEFCON ${intel.defcon?.level||'?'} posture and current conflict zone intensities. AI analysis unavailable in this hosting context — displaying calculated fallback.`,
+            analystNote: settled
+                ? 'ClaudeAPI unreachable from this deployment (needs a backend proxy holding an API key). Heuristic model active — no further automatic retries this session.'
+                : 'ClaudeAPI unavailable — heuristic model active. Retrying automatically.',
         };
         renderAssessment(fallback);
-        setStatus('HEURISTIC MODE (retrying)', 'status-partial');
+        setStatus(settled ? 'HEURISTIC MODE' : 'HEURISTIC MODE (retrying)', 'status-partial');
     }
+
 
     const retry = makeRetryScheduler(async (isRetry) => {
         if (isGenerating) return true; // don't stack
@@ -2010,9 +2027,10 @@ NEWS SOURCES: ${news.active||0}/${news.total||0} online | ${news.flaggedCount||0
     function renderFallback() {
         const intel = IntelEngine.getLastResult() || IntelEngine.calculateDefcon();
         const ai = StrategicIntelEngine.getLastAssessment();
+        const settled = AIAvailability.getState() === 'unavailable';
         renderSitrep({
             classification: 'UNCLASSIFIED // OSINT // HEURISTIC FALLBACK',
-            executiveSummary: ai?.executiveSummary || `Current posture: DEFCON ${intel.defcon?.level}. Heuristic SITREP — AI generation unavailable, retrying automatically. Key concerns: active conflicts in Ukraine, Middle East, and South China Sea tension continue to drive elevated threat indices.`,
+            executiveSummary: ai?.executiveSummary || `Current posture: DEFCON ${intel.defcon?.level}. Heuristic SITREP — AI generation unavailable in this hosting context. Key concerns: active conflicts in Ukraine, Middle East, and South China Sea tension continue to drive elevated threat indices.`,
             highPriorityEvents: ['Russia-Ukraine active front — eastern corridor ongoing','Iran-Israel: post-ceasefire compliance monitoring active','South China Sea: PLA naval exercise activity elevated'],
             militaryDevelopments: ['NATO northern flank reinforcements continue','US carrier strike groups: 3 deployed — Mediterranean, Western Pacific, Eastern Atlantic'],
             economicDevelopments: ['Energy price volatility linked to Gulf sector tensions','Supply chain stress at Bab el-Mandeb remains elevated (Houthi operations)'],
@@ -2023,8 +2041,19 @@ NEWS SOURCES: ${news.active||0}/${news.total||0} online | ${news.flaggedCount||0
             confidence: 'Medium',
             analystAttention: ['Monitor Russian Northern Fleet movements','Watch Taiwan Strait PLAN exercise scheduling','Track WHO H5N1 avian influenza spread velocity'],
         });
-        setStatus('FALLBACK (retrying)', 'status-partial');
+        // renderSitrep() above always stamps status as GENERATED — this is
+        // a fallback, so overwrite it with an accurate label. Once the
+        // breaker has actually stopped auto-retrying, say so instead of
+        // implying it's still perpetually trying and failing.
+        setStatus(settled ? 'HEURISTIC MODE' : 'FALLBACK (retrying)', 'status-partial');
+        const metaEl = document.getElementById('sitrepMeta');
+        if (metaEl) {
+            metaEl.textContent = settled
+                ? `Heuristic mode — no AI backend reachable here. Press "Generate Now" to retry, or last generated: ${lastSitrep ? new Date().toLocaleTimeString() : 'never'}`
+                : `Retrying automatically \u2026 last attempt: ${new Date().toLocaleTimeString()}`;
+        }
     }
+
 
     const retry = makeRetryScheduler(async (isRetry) => {
         setStatus(isRetry ? 'RETRYING\u2026' : 'GENERATING\u2026', 'status-partial');
